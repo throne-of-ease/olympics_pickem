@@ -76,6 +76,10 @@
   gap: var(--spacing-sm);
 }
 
+.flag {
+  margin-right: 4px;
+}
+
 .logo {
   width: 24px;
   height: 24px;
