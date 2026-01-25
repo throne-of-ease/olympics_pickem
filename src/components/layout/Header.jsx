@@ -11,6 +11,7 @@ export function Header() {
         </Link>
         <nav className={styles.nav}>
           <Link to="/" className={styles.link}>Games</Link>
+          <Link to="/picks" className={styles.link}>Picks</Link>
           <Link to="/leaderboard" className={styles.link}>Leaderboard</Link>
           <Link to="/standings" className={styles.link}>Standings</Link>
         </nav>
