@@ -1,5 +1,5 @@
 import { format, parseISO } from 'date-fns';
-import { Card } from '../common';
+import { Card, CountryFlag } from '../common';
 import styles from './GameCard.module.css';
 
 const ROUND_LABELS = {
@@ -69,6 +69,7 @@ function TeamDisplay({ team, score, isWinner, showScore }) {
 
   return (
     <div className={`${styles.team} ${isWinner ? styles.winner : ''}`}>
+      <CountryFlag team={team} size="medium" className={styles.flag} />
       {team.logo_url && (
         <img src={team.logo_url} alt="" className={styles.logo} />
       )}

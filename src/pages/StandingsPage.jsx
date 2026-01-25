@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Card, Loading, Button } from '../components/common';
+import { Card, Loading, Button, CountryFlag } from '../components/common';
 import styles from './StandingsPage.module.css';
 
 export function StandingsPage() {
@@ -88,6 +88,7 @@ export function StandingsPage() {
                       <tr key={entry.team.espnId}>
                         <td className={styles.rank}>{index + 1}</td>
                         <td className={styles.team}>
+                          <CountryFlag team={entry.team} size="small" className={styles.flag} />
                           {entry.team.logo && (
                             <img
                               src={entry.team.logo}
