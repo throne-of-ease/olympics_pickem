@@ -1,0 +1,24 @@
+{
+  "players": [
+    {
+      "id": "player1",
+      "name": "Alex",
+      "displayOrder": 1
+    },
+    {
+      "id": "player2",
+      "name": "Jordan",
+      "displayOrder": 2
+    },
+    {
+      "id": "player3",
+      "name": "Taylor",
+      "displayOrder": 3
+    },
+    {
+      "id": "player4",
+      "name": "Morgan",
+      "displayOrder": 4
+    }
+  ]
+}
