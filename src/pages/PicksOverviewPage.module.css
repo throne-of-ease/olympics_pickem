@@ -72,9 +72,10 @@
 }
 
 .teamLogo {
-  width: 24px;
-  height: 24px;
+  width: 18px;
+  height: 18px;
   object-fit: contain;
+  flex-shrink: 0;
 }
 
 .winnerBadge .teamLogo {
@@ -100,17 +101,18 @@
   border-radius: var(--border-radius-lg);
   background: var(--bg-primary);
   box-shadow: var(--shadow-md);
+  -webkit-overflow-scrolling: touch;
 }
 
 .compactTable {
   width: 100%;
   border-collapse: collapse;
-  min-width: 600px;
+  table-layout: fixed;
 }
 
 .compactTable th,
 .compactTable td {
-  padding: var(--spacing-sm) var(--spacing-md);
+  padding: 6px 8px;
   text-align: center;
   border-bottom: 1px solid var(--border-color);
 }
@@ -126,31 +128,37 @@
 
 .gameCol {
   text-align: left !important;
-  min-width: 200px;
-}
-
-.scoreCol {
-  min-width: 80px;
+  width: auto;
 }
 
 .playerCol {
-  min-width: 100px;
+  width: 52px;
 }
 
 .playerHeader {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
+  gap: 1px;
 }
 
 .playerName {
   font-weight: 600;
+  font-size: 11px;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.playerInitials {
+  display: none;
+  font-weight: 700;
+  font-size: 11px;
 }
 
 .playerPoints {
-  font-size: var(--font-size-lg);
+  font-size: 14px;
   font-weight: 700;
   color: var(--color-success);
 }
@@ -159,17 +167,8 @@
   color: var(--color-gold);
 }
 
-.leaderBadge {
-  font-size: var(--font-size-xs);
-  background: var(--color-gold);
-  color: var(--color-gray-800);
-  padding: 1px 6px;
-  border-radius: 10px;
-  font-weight: 600;
-}
-
 .pointsDiff {
-  font-size: var(--font-size-xs);
+  font-size: 10px;
   color: var(--color-error);
 }
 
@@ -191,95 +190,95 @@
 
 .gameCell {
   text-align: left !important;
+  padding-left: 6px !important;
+  padding-right: 4px !important;
 }
 
 .gameInfo {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs);
+  gap: 2px;
 }
 
 .teams {
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: 4px;
+  flex-wrap: nowrap;
 }
 
-.atSymbol {
-  color: var(--text-muted);
-  font-size: var(--font-size-sm);
+.teamAbbrev {
+  font-weight: 600;
+  font-size: 11px;
+  color: var(--text-primary);
+}
+
+.scoreInline {
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--text-secondary);
+  min-width: 28px;
+  text-align: center;
 }
 
 .gameTime {
-  font-size: var(--font-size-xs);
+  font-size: 10px;
   color: var(--text-secondary);
 }
 
 .liveBadge {
   background: var(--color-error);
   color: white;
-  padding: 2px 6px;
-  border-radius: 4px;
+  padding: 1px 4px;
+  border-radius: 3px;
   font-weight: 700;
-  font-size: var(--font-size-xs);
+  font-size: 9px;
   animation: pulse 2s infinite;
 }
 
 .finalBadge {
   background: var(--color-gray-600);
   color: white;
-  padding: 2px 6px;
-  border-radius: 4px;
+  padding: 1px 4px;
+  border-radius: 3px;
   font-weight: 600;
-  font-size: var(--font-size-xs);
-}
-
-.scoreCell {
-  font-weight: 700;
-}
-
-.actualScore {
-  font-size: var(--font-size-lg);
-  color: var(--text-primary);
-}
-
-.scheduled {
-  color: var(--text-muted);
+  font-size: 9px;
 }
 
 .pickCell {
   vertical-align: middle;
+  padding: 4px 2px !important;
 }
 
 .pickCompact {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--border-radius-sm);
-  min-width: 50px;
+  gap: 2px;
+  padding: 3px 4px;
+  border-radius: 4px;
+  min-width: 36px;
 }
 
 .pickCompact.correct {
-  background: linear-gradient(135deg, rgba(40, 167, 69, 0.2) 0%, rgba(40, 167, 69, 0.1) 100%);
+  background: rgba(40, 167, 69, 0.2);
   border: 1px solid var(--color-success);
 }
 
 .pickCompact.incorrect {
-  background: linear-gradient(135deg, rgba(220, 53, 69, 0.15) 0%, rgba(220, 53, 69, 0.05) 100%);
+  background: rgba(220, 53, 69, 0.12);
   border: 1px solid rgba(220, 53, 69, 0.3);
 }
 
 .pickLogo {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   object-fit: contain;
 }
 
 .pickPoints {
   font-weight: 700;
-  font-size: var(--font-size-sm);
+  font-size: 11px;
 }
 
 .correct .pickPoints {
@@ -292,14 +291,14 @@
 
 .pickTie {
   font-weight: 600;
-  font-size: var(--font-size-xs);
+  font-size: 10px;
   color: var(--text-secondary);
 }
 
 .noPick,
 .hidden {
   color: var(--text-muted);
-  font-size: var(--font-size-sm);
+  font-size: 11px;
 }
 
 .hidden {
@@ -797,16 +796,6 @@
     font-size: var(--font-size-xs);
   }
 
-  /* Compact table scrolls horizontally */
-  .compactTable th,
-  .compactTable td {
-    padding: var(--spacing-xs) var(--spacing-sm);
-  }
-
-  .playerHeader {
-    min-width: 70px;
-  }
-
   /* Card grid single column */
   .gameCards {
     grid-template-columns: 1fr;
@@ -836,7 +825,90 @@
   }
 }
 
+/* Mobile-first compact table - fits 4 players */
 @media (max-width: 480px) {
+  /* Compact table - ultra dense for 4 players */
+  .compactTable th,
+  .compactTable td {
+    padding: 4px 3px;
+  }
+
+  .playerCol {
+    width: 44px;
+  }
+
+  .playerName {
+    display: none;
+  }
+
+  .playerInitials {
+    display: block;
+  }
+
+  .playerPoints {
+    font-size: 13px;
+  }
+
+  .pointsDiff {
+    font-size: 9px;
+  }
+
+  .gameCell {
+    padding-left: 4px !important;
+  }
+
+  .teams {
+    gap: 2px;
+  }
+
+  .teamLogo {
+    width: 16px;
+    height: 16px;
+  }
+
+  .teamAbbrev {
+    display: none;
+  }
+
+  .scoreInline {
+    font-size: 11px;
+    min-width: 24px;
+  }
+
+  .gameTime {
+    font-size: 9px;
+  }
+
+  .pickCell {
+    padding: 3px 1px !important;
+  }
+
+  .pickCompact {
+    padding: 2px 3px;
+    min-width: 32px;
+    gap: 1px;
+  }
+
+  .pickLogo {
+    width: 16px;
+    height: 16px;
+  }
+
+  .pickPoints {
+    font-size: 10px;
+  }
+
+  .pickTie {
+    font-size: 9px;
+  }
+
+  .liveBadge,
+  .finalBadge {
+    font-size: 8px;
+    padding: 1px 3px;
+  }
+
+  /* Card grid */
   .playerCards {
     grid-template-columns: 1fr 1fr;
   }
@@ -849,6 +921,7 @@
     font-size: var(--font-size-xl);
   }
 
+  /* Timeline */
   .timelineContent {
     padding-left: var(--spacing-md);
   }
@@ -859,6 +932,49 @@
 
   .timelineDate {
     margin-left: calc(-1 * var(--spacing-md));
+  }
+}
+
+/* Extra small screens - even more compact */
+@media (max-width: 360px) {
+  .compactTable th,
+  .compactTable td {
+    padding: 3px 2px;
+  }
+
+  .playerCol {
+    width: 40px;
+  }
+
+  .playerInitials {
+    font-size: 10px;
+  }
+
+  .playerPoints {
+    font-size: 12px;
+  }
+
+  .pickCompact {
+    min-width: 28px;
+    padding: 2px;
+  }
+
+  .pickLogo {
+    width: 14px;
+    height: 14px;
+  }
+
+  .pickPoints {
+    font-size: 9px;
+  }
+
+  .teamLogo {
+    width: 14px;
+    height: 14px;
+  }
+
+  .scoreInline {
+    font-size: 10px;
   }
 }
 

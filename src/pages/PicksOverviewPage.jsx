@@ -94,21 +94,29 @@ export function PicksOverviewPage() {
 // DESIGN 1: Compact Table View
 // ============================================
 function CompactTableView({ games, players }) {
+  // Get abbreviated name (e.g., "Jirka P" -> "JP", "Honza" -> "H")
+  const getInitials = (name) => {
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return parts[0][0] + parts[1][0];
+    }
+    return name.slice(0, 2).toUpperCase();
+  };
+
   return (
     <div className={styles.tableWrapper}>
       <table className={styles.compactTable}>
         <thead>
           <tr>
             <th className={styles.gameCol}>Game</th>
-            <th className={styles.scoreCol}>Score</th>
             {players.map((player, idx) => (
               <th key={player.playerId} className={styles.playerCol}>
                 <div className={styles.playerHeader}>
                   <span className={styles.playerName}>{player.playerName}</span>
+                  <span className={styles.playerInitials}>{getInitials(player.playerName)}</span>
                   <span className={`${styles.playerPoints} ${idx === 0 ? styles.leader : ''}`}>
                     {player.totalPoints}
                   </span>
-                  {idx === 0 && <span className={styles.leaderBadge}>Leader</span>}
                   {idx > 0 && (
                     <span className={styles.pointsDiff}>
                       {player.totalPoints - players[0].totalPoints}
@@ -140,32 +148,29 @@ function CompactTableRow({ game, players }) {
     return game.picks?.find(p => p.playerId === playerId);
   };
 
+  const getAbbrev = (team) => team?.abbreviation || team?.name?.slice(0, 3).toUpperCase() || '?';
+
   return (
     <tr className={`${styles.gameRow} ${isLive ? styles.liveRow : ''}`}>
       <td className={styles.gameCell}>
         <div className={styles.gameInfo}>
           <div className={styles.teams}>
             <TeamBadge team={game.team_a} isWinner={isFinal && game.result === 'win_a'} />
-            <span className={styles.atSymbol}>@</span>
+            <span className={styles.teamAbbrev}>{getAbbrev(game.team_a)}</span>
+            <span className={styles.scoreInline}>
+              {(isFinal || isLive) ? `${game.score_a}-${game.score_b}` : 'vs'}
+            </span>
+            <span className={styles.teamAbbrev}>{getAbbrev(game.team_b)}</span>
             <TeamBadge team={game.team_b} isWinner={isFinal && game.result === 'win_b'} />
           </div>
           <div className={styles.gameTime}>
             {isLive && <span className={styles.liveBadge}>LIVE</span>}
-            {isFinal && <span className={styles.finalBadge}>FINAL</span>}
+            {isFinal && <span className={styles.finalBadge}>FIN</span>}
             {!isFinal && !isLive && (
-              <span>{format(scheduledAt, 'MMM d, HH:mm')}</span>
+              <span>{format(scheduledAt, 'd/M HH:mm')}</span>
             )}
           </div>
         </div>
-      </td>
-      <td className={styles.scoreCell}>
-        {(isFinal || isLive) ? (
-          <span className={styles.actualScore}>
-            {game.score_a} - {game.score_b}
-          </span>
-        ) : (
-          <span className={styles.scheduled}>-</span>
-        )}
       </td>
       {players.map((player) => {
         const pick = getPickForPlayer(player.playerId);
@@ -176,7 +181,7 @@ function CompactTableRow({ game, players }) {
             ) : gameStarted && !pick ? (
               <span className={styles.noPick}>-</span>
             ) : (
-              <span className={styles.hidden}>Hidden</span>
+              <span className={styles.hidden}>?</span>
             )}
           </td>
         );
