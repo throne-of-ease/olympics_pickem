@@ -1,16 +1,13 @@
 game_id,team_a,team_a_score,team_b,team_b_score
-401845663,Canada,5,USA,2
-401845664,Sweden,2,Finland,2
-401845665,Czech Republic,1,Switzerland,3
-401845666,Russia,6,Germany,0
-401845667,Canada,3,Czech Republic,1
-401845668,USA,2,Switzerland,2
-401845669,Sweden,3,Russia,4
-401845670,Finland,5,Germany,1
-401845671,Canada,4,Switzerland,2
-401845672,USA,1,Czech Republic,0
-401845673,Sweden,5,Germany,2
-401845674,Finland,4,Russia,4
-401845675,Canada,4,Finland,3
-401845676,USA,3,Sweden,1
-401845677,Canada,5,Sweden,3
+401845001,Canada,6,Germany,0
+401845002,USA,4,Finland,1
+401845003,Sweden,3,Switzerland,3
+401845004,Czech Republic,2,Slovakia,3
+401845005,Canada,4,USA,2
+401845006,Finland,0,Sweden,3
+401845007,Canada,5,Sweden,1
+401845008,USA,6,Finland,2
+401845009,Canada,3,USA,1
+401845010,Finland,2,Sweden,4
+401845011,Sweden,2,USA,1
+401845012,Canada,5,Finland,2
