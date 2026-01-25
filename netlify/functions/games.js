@@ -1,7 +1,12 @@
 import { jsonResponse, errorResponse, corsHeaders } from './utils/response.js';
 import { loadAllPlayerPicks } from './utils/pickLoader.js';
+import { readFileSync, existsSync } from 'fs';
+import { join } from 'path';
 
 const ESPN_BASE_URL = 'https://site.api.espn.com/apis/site/v2/sports/hockey/olympics-mens-ice-hockey';
+
+// Use mock data if ESPN returns empty or USE_MOCK_DATA env var is set
+const USE_MOCK_DATA = process.env.USE_MOCK_DATA === 'true';
 
 export async function handler(event) {
   // Handle CORS preflight
@@ -83,16 +88,58 @@ export async function handler(event) {
 }
 
 async function fetchGamesFromESPN() {
-  const dateRange = '20260211-20260222';
-  const url = `${ESPN_BASE_URL}/scoreboard?dates=${dateRange}`;
-
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`ESPN API error: ${response.status}`);
+  // Check if we should use mock data
+  if (USE_MOCK_DATA) {
+    console.log('Using mock data (USE_MOCK_DATA=true)');
+    return loadMockGames();
   }
 
-  const data = await response.json();
-  return parseScheduleResponse(data);
+  try {
+    const dateRange = '20260211-20260222';
+    const url = `${ESPN_BASE_URL}/scoreboard?dates=${dateRange}`;
+
+    const response = await fetch(url);
+    if (!response.ok) {
+      console.warn(`ESPN API error: ${response.status}, falling back to mock data`);
+      return loadMockGames();
+    }
+
+    const data = await response.json();
+    const games = parseScheduleResponse(data);
+
+    // Fall back to mock data if ESPN returns empty (Olympics not started yet)
+    if (games.length === 0) {
+      console.log('ESPN returned no games, using mock data');
+      return loadMockGames();
+    }
+
+    return games;
+  } catch (error) {
+    console.warn('ESPN API failed, falling back to mock data:', error.message);
+    return loadMockGames();
+  }
+}
+
+function loadMockGames() {
+  const possiblePaths = [
+    join(process.cwd(), 'public', 'data', 'mock-games.json'),
+    join(process.cwd(), 'dist', 'data', 'mock-games.json'),
+  ];
+
+  for (const mockPath of possiblePaths) {
+    if (existsSync(mockPath)) {
+      try {
+        const content = readFileSync(mockPath, 'utf-8');
+        const mockData = JSON.parse(content);
+        return parseScheduleResponse(mockData);
+      } catch (err) {
+        console.error('Failed to load mock data:', err.message);
+      }
+    }
+  }
+
+  console.warn('No mock data file found');
+  return [];
 }
 
 function parseScheduleResponse(data) {
