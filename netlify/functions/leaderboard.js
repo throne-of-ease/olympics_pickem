@@ -1,18 +1,33 @@
 import { jsonResponse, errorResponse, corsHeaders } from './utils/response.js';
 import { loadAllPlayerPicks } from './utils/pickLoader.js';
 import { readFileSync, existsSync } from 'fs';
-import { join } from 'path';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 
 const ESPN_BASE_URL = 'https://site.api.espn.com/apis/site/v2/sports/hockey/olympics-mens-ice-hockey';
 
 // Use mock data if ESPN returns empty or USE_MOCK_DATA env var is set
 const USE_MOCK_DATA = process.env.USE_MOCK_DATA === 'true';
 
+// Get __dirname equivalent for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
 // Load scoring config
 let scoringConfig;
 try {
-  const configPath = join(process.cwd(), 'config', 'scoring.json');
-  scoringConfig = JSON.parse(readFileSync(configPath, 'utf-8'));
+  // Try multiple paths for config
+  const configPaths = [
+    join(__dirname, '..', '..', 'config', 'scoring.json'),
+    join(process.cwd(), 'config', 'scoring.json'),
+  ];
+
+  for (const configPath of configPaths) {
+    if (existsSync(configPath)) {
+      scoringConfig = JSON.parse(readFileSync(configPath, 'utf-8'));
+      break;
+    }
+  }
 } catch (error) {
   console.warn('Could not load scoring config, using defaults');
   scoringConfig = {
@@ -182,15 +197,20 @@ async function fetchGamesFromESPN() {
 
 function loadMockGames() {
   const possiblePaths = [
+    // Relative to function file (works on Netlify with included_files)
+    join(__dirname, '..', '..', 'public', 'data', 'mock-games.json'),
+    // From cwd (works in local dev)
     join(process.cwd(), 'public', 'data', 'mock-games.json'),
     join(process.cwd(), 'dist', 'data', 'mock-games.json'),
   ];
 
   for (const mockPath of possiblePaths) {
+    console.log('Checking mock data path:', mockPath);
     if (existsSync(mockPath)) {
       try {
         const content = readFileSync(mockPath, 'utf-8');
         const mockData = JSON.parse(content);
+        console.log('Loaded mock data from:', mockPath);
         return parseScheduleResponse(mockData);
       } catch (err) {
         console.error('Failed to load mock data:', err.message);
@@ -198,7 +218,7 @@ function loadMockGames() {
     }
   }
 
-  console.warn('No mock data file found');
+  console.warn('No mock data file found in any path');
   return [];
 }
 
