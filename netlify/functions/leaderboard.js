@@ -1,7 +1,5 @@
 import { jsonResponse, errorResponse, corsHeaders } from './utils/response.js';
-import { loadAllPlayerPicks } from './utils/pickLoader.js';
-import { readFileSync, existsSync } from 'fs';
-import { join } from 'path';
+import { loadAllPlayerPicks, loadMockGamesData, loadScoringConfig } from './utils/pickLoader.js';
 
 const ESPN_BASE_URL = 'https://site.api.espn.com/apis/site/v2/sports/hockey/olympics-mens-ice-hockey';
 
@@ -9,17 +7,7 @@ const ESPN_BASE_URL = 'https://site.api.espn.com/apis/site/v2/sports/hockey/olym
 const USE_MOCK_DATA = process.env.USE_MOCK_DATA === 'true';
 
 // Load scoring config
-let scoringConfig;
-try {
-  const configPath = join(process.cwd(), 'config', 'scoring.json');
-  scoringConfig = JSON.parse(readFileSync(configPath, 'utf-8'));
-} catch (error) {
-  console.warn('Could not load scoring config, using defaults');
-  scoringConfig = {
-    points: { groupStage: 1, knockoutRound: 2, medalRound: 3 },
-    exactScoreBonus: { enabled: false, points: 1 }
-  };
-}
+const scoringConfig = loadScoringConfig();
 
 export async function handler(event) {
   if (event.httpMethod === 'OPTIONS') {
@@ -181,24 +169,10 @@ async function fetchGamesFromESPN() {
 }
 
 function loadMockGames() {
-  const possiblePaths = [
-    join(process.cwd(), 'public', 'data', 'mock-games.json'),
-    join(process.cwd(), 'dist', 'data', 'mock-games.json'),
-  ];
-
-  for (const mockPath of possiblePaths) {
-    if (existsSync(mockPath)) {
-      try {
-        const content = readFileSync(mockPath, 'utf-8');
-        const mockData = JSON.parse(content);
-        return parseScheduleResponse(mockData);
-      } catch (err) {
-        console.error('Failed to load mock data:', err.message);
-      }
-    }
+  const mockData = loadMockGamesData();
+  if (mockData) {
+    return parseScheduleResponse(mockData);
   }
-
-  console.warn('No mock data file found');
   return [];
 }
 
