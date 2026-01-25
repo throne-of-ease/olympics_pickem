@@ -1,20 +1,15 @@
 import { readFileSync, readdirSync, existsSync } from 'fs';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
+import { join } from 'path';
 import Papa from 'papaparse';
 
-// Get __dirname for ES modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
 // Get the base data directory (public/data)
+// Note: Don't use import.meta.url - it's undefined after esbuild bundling
 function getBaseDataDir() {
   const possiblePaths = [
-    join(process.cwd(), 'public', 'data'),
-    join(process.cwd(), 'dist', 'data'),
-    join(__dirname, '..', '..', '..', 'public', 'data'),
     // Netlify functions run from /var/task
     '/var/task/public/data',
+    join(process.cwd(), 'public', 'data'),
+    join(process.cwd(), 'dist', 'data'),
   ];
 
   for (const path of possiblePaths) {
@@ -153,9 +148,8 @@ export function loadMockGamesData() {
  */
 export function loadScoringConfig() {
   const possiblePaths = [
-    join(process.cwd(), 'config', 'scoring.json'),
-    join(__dirname, '..', '..', '..', 'config', 'scoring.json'),
     '/var/task/config/scoring.json',
+    join(process.cwd(), 'config', 'scoring.json'),
   ];
 
   for (const configPath of possiblePaths) {
