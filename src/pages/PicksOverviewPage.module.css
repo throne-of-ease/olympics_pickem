@@ -862,12 +862,12 @@
   }
 
   .teamLogo {
-    width: 16px;
-    height: 16px;
+    display: none;
   }
 
   .teamAbbrev {
-    display: none;
+    font-size: 10px;
+    font-weight: 700;
   }
 
   .scoreInline {
@@ -968,9 +968,8 @@
     font-size: 9px;
   }
 
-  .teamLogo {
-    width: 14px;
-    height: 14px;
+  .teamAbbrev {
+    font-size: 9px;
   }
 
   .scoreInline {
