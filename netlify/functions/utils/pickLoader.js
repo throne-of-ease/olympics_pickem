@@ -3,23 +3,34 @@ import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import Papa from 'papaparse';
 
-// Get the picks data directory
-function getDataDir() {
-  // In Netlify functions, picks are in public/data/picks (served as static files)
-  // During build, they're in the dist folder, but we need to check multiple locations
+// Get __dirname for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Get the base data directory (public/data)
+function getBaseDataDir() {
   const possiblePaths = [
-    join(process.cwd(), 'public', 'data', 'picks'),
-    join(process.cwd(), 'dist', 'data', 'picks'),
-    join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', 'public', 'data', 'picks'),
+    join(process.cwd(), 'public', 'data'),
+    join(process.cwd(), 'dist', 'data'),
+    join(__dirname, '..', '..', '..', 'public', 'data'),
+    // Netlify functions run from /var/task
+    '/var/task/public/data',
   ];
 
   for (const path of possiblePaths) {
     if (existsSync(path)) {
+      console.log('Found data directory at:', path);
       return path;
     }
   }
 
-  return join(process.cwd(), 'public', 'data', 'picks');
+  console.warn('No data directory found, tried:', possiblePaths);
+  return join(process.cwd(), 'public', 'data');
+}
+
+// Get the picks data directory
+function getDataDir() {
+  return join(getBaseDataDir(), 'picks');
 }
 
 /**
@@ -112,8 +123,64 @@ export function loadAllPlayerPicks() {
   });
 }
 
+/**
+ * Load mock games data from JSON file
+ * @returns {Object|null} Mock games data or null if not found
+ */
+export function loadMockGamesData() {
+  const baseDir = getBaseDataDir();
+  const mockPath = join(baseDir, 'mock-games.json');
+
+  console.log('Looking for mock games at:', mockPath);
+
+  try {
+    if (existsSync(mockPath)) {
+      const content = readFileSync(mockPath, 'utf-8');
+      console.log('Loaded mock games from:', mockPath);
+      return JSON.parse(content);
+    }
+    console.warn('Mock games file not found at:', mockPath);
+    return null;
+  } catch (error) {
+    console.error('Failed to load mock games:', error.message);
+    return null;
+  }
+}
+
+/**
+ * Load scoring config from JSON file
+ * @returns {Object} Scoring config with defaults
+ */
+export function loadScoringConfig() {
+  const possiblePaths = [
+    join(process.cwd(), 'config', 'scoring.json'),
+    join(__dirname, '..', '..', '..', 'config', 'scoring.json'),
+    '/var/task/config/scoring.json',
+  ];
+
+  for (const configPath of possiblePaths) {
+    try {
+      if (existsSync(configPath)) {
+        const content = readFileSync(configPath, 'utf-8');
+        console.log('Loaded scoring config from:', configPath);
+        return JSON.parse(content);
+      }
+    } catch (error) {
+      console.warn('Failed to load config from', configPath, error.message);
+    }
+  }
+
+  console.warn('Using default scoring config');
+  return {
+    points: { groupStage: 1, knockoutRound: 2, medalRound: 3 },
+    exactScoreBonus: { enabled: false, points: 1 }
+  };
+}
+
 export default {
   loadPlayers,
   loadPlayerPicks,
   loadAllPlayerPicks,
+  loadMockGamesData,
+  loadScoringConfig,
 };
