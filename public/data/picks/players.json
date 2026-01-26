@@ -2,22 +2,22 @@
   "players": [
     {
       "id": "player1",
-      "name": "Alex",
+      "name": "Jirka P",
       "displayOrder": 1
     },
     {
       "id": "player2",
-      "name": "Jordan",
+      "name": "Jirka L",
       "displayOrder": 2
     },
     {
       "id": "player3",
-      "name": "Taylor",
+      "name": "Honza",
       "displayOrder": 3
     },
     {
       "id": "player4",
-      "name": "Morgan",
+      "name": "Marek",
       "displayOrder": 4
     }
   ]
