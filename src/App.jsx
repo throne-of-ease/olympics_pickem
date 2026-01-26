@@ -10,8 +10,8 @@ function App() {
       <AppProvider>
         <Routes>
           <Route path="/" element={<Layout />}>
-            <Route index element={<GamesPage />} />
-            <Route path="picks" element={<PicksOverviewPage />} />
+            <Route index element={<PicksOverviewPage />} />
+            <Route path="games" element={<GamesPage />} />
             <Route path="leaderboard" element={<LeaderboardPage />} />
             <Route path="standings" element={<StandingsPage />} />
           </Route>
