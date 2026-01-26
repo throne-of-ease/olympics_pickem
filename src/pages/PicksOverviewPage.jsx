@@ -8,8 +8,7 @@ import styles from './PicksOverviewPage.module.css';
 
 const DESIGN_OPTIONS = [
   { id: 'compact', label: 'Compact Table' },
-  { id: 'cards', label: 'Card Grid' },
-  { id: 'timeline', label: 'Timeline' },
+  { id: 'cards', label: 'Cards' },
 ];
 
 export function PicksOverviewPage() {
@@ -82,9 +81,6 @@ export function PicksOverviewPage() {
       )}
       {design === 'cards' && (
         <CardGridView games={sortedGames} players={sortedPlayers} />
-      )}
-      {design === 'timeline' && (
-        <TimelineView games={sortedGames} players={sortedPlayers} />
       )}
     </div>
   );
@@ -191,9 +187,20 @@ function CompactTableRow({ game, players }) {
 }
 
 // ============================================
-// DESIGN 2: Card Grid View (Glassmorphism)
+// DESIGN 2: Cards View (Player Cards + Timeline Games)
 // ============================================
 function CardGridView({ games, players }) {
+  // Group games by date
+  const gamesByDate = useMemo(() => {
+    const grouped = {};
+    games.forEach(game => {
+      const date = format(parseISO(game.scheduled_at), 'yyyy-MM-dd');
+      if (!grouped[date]) grouped[date] = [];
+      grouped[date].push(game);
+    });
+    return grouped;
+  }, [games]);
+
   return (
     <div className={styles.cardGrid}>
       {/* Player Score Cards */}
@@ -211,101 +218,7 @@ function CardGridView({ games, players }) {
         ))}
       </div>
 
-      {/* Game Cards */}
-      <div className={styles.gameCards}>
-        {games.map((game) => (
-          <GamePickCard key={game.id} game={game} players={players} />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function GamePickCard({ game, players }) {
-  const scheduledAt = parseISO(game.scheduled_at);
-  const isFinal = game.status === 'final';
-  const isLive = game.status === 'in_progress';
-  const now = new Date();
-  const gameStarted = isAfter(now, scheduledAt) || isLive || isFinal;
-
-  const getPickForPlayer = (playerId) => {
-    return game.picks?.find(p => p.playerId === playerId);
-  };
-
-  return (
-    <div className={`${styles.gamePickCard} ${isLive ? styles.liveCard : ''} ${isFinal ? styles.finalCard : ''}`}>
-      <div className={styles.cardHeader}>
-        <div className={styles.cardMatchup}>
-          <TeamBadge team={game.team_a} isWinner={isFinal && game.result === 'win_a'} showName />
-          <div className={styles.cardVs}>
-            {(isFinal || isLive) ? (
-              <span className={styles.cardActualScore}>{game.score_a} - {game.score_b}</span>
-            ) : (
-              <span className={styles.cardVsText}>VS</span>
-            )}
-          </div>
-          <TeamBadge team={game.team_b} isWinner={isFinal && game.result === 'win_b'} showName />
-        </div>
-        <div className={styles.cardStatus}>
-          {isLive && <span className={styles.livePulse}>LIVE</span>}
-          {isFinal && <span className={styles.finalLabel}>FINAL</span>}
-          {!isFinal && !isLive && (
-            <span className={styles.cardTime}>{format(scheduledAt, 'MMM d, HH:mm')}</span>
-          )}
-        </div>
-      </div>
-      <div className={styles.cardPicks}>
-        {players.map((player) => {
-          const pick = getPickForPlayer(player.playerId);
-          return (
-            <div key={player.playerId} className={styles.cardPickItem}>
-              <span className={styles.cardPickPlayer}>{player.playerName}</span>
-              {gameStarted && pick ? (
-                <PickDisplay pick={pick} game={game} variant="card" />
-              ) : gameStarted && !pick ? (
-                <span className={styles.cardNoPick}>No pick</span>
-              ) : (
-                <span className={styles.cardHidden}>Hidden</span>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-// ============================================
-// DESIGN 3: Timeline View
-// ============================================
-function TimelineView({ games, players }) {
-  // Group games by date
-  const gamesByDate = useMemo(() => {
-    const grouped = {};
-    games.forEach(game => {
-      const date = format(parseISO(game.scheduled_at), 'yyyy-MM-dd');
-      if (!grouped[date]) grouped[date] = [];
-      grouped[date].push(game);
-    });
-    return grouped;
-  }, [games]);
-
-  return (
-    <div className={styles.timeline}>
-      {/* Floating Player Legend */}
-      <div className={styles.playerLegend}>
-        {players.map((player, idx) => (
-          <div
-            key={player.playerId}
-            className={`${styles.legendItem} ${idx === 0 ? styles.legendLeader : ''}`}
-          >
-            <span className={styles.legendName}>{player.playerName}</span>
-            <span className={styles.legendPoints}>{player.totalPoints} pts</span>
-          </div>
-        ))}
-      </div>
-
-      {/* Timeline */}
+      {/* Timeline Games */}
       <div className={styles.timelineContent}>
         {Object.entries(gamesByDate).map(([date, dateGames]) => (
           <div key={date} className={styles.timelineDay}>
