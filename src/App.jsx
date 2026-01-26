@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AppProvider } from './context/AppContext';
 import { Layout } from './components/layout';
-import { GamesPage, LeaderboardPage, StandingsPage, PicksOverviewPage } from './pages';
+import { GamesPage, LeaderboardPage, StandingsPage, PicksOverviewPage, RulesPage } from './pages';
 import './styles/global.css';
 
 function App() {
@@ -14,6 +14,7 @@ function App() {
             <Route path="games" element={<GamesPage />} />
             <Route path="leaderboard" element={<LeaderboardPage />} />
             <Route path="standings" element={<StandingsPage />} />
+            <Route path="rules" element={<RulesPage />} />
           </Route>
         </Routes>
       </AppProvider>
