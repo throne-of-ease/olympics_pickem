@@ -1,7 +1,17 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import { Button } from '../common';
 import styles from './Header.module.css';
 
 export function Header() {
+  const { isAuthenticated, isAdmin, profile, signOut, isConfigured } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
+  };
+
   return (
     <header className={styles.header}>
       <div className={styles.container}>
@@ -15,6 +25,27 @@ export function Header() {
           <Link to="/leaderboard" className={styles.link}>Leaderboard</Link>
           <Link to="/standings" className={styles.link}>Standings</Link>
           <Link to="/rules" className={styles.link}>Rules</Link>
+
+          {isConfigured && (
+            <>
+              {isAuthenticated ? (
+                <>
+                  <Link to="/my-picks" className={styles.link}>My Picks</Link>
+                  {isAdmin && (
+                    <Link to="/admin" className={styles.adminLink}>Admin</Link>
+                  )}
+                  <div className={styles.userMenu}>
+                    <span className={styles.userName}>{profile?.name || 'User'}</span>
+                    <Button variant="ghost" size="small" onClick={handleSignOut}>
+                      Sign Out
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <Link to="/login" className={styles.loginLink}>Sign In</Link>
+              )}
+            </>
+          )}
         </nav>
       </div>
     </header>
