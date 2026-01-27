@@ -1,0 +1,144 @@
+.card {
+  padding: var(--spacing-md);
+}
+
+.gameInfo {
+  margin-bottom: var(--spacing-md);
+}
+
+.teams {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-xs);
+}
+
+.team {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-weight: 500;
+}
+
+.vs {
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.time {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.error {
+  padding: var(--spacing-sm);
+  background-color: rgba(220, 53, 69, 0.1);
+  border-radius: var(--border-radius-sm);
+  color: var(--color-error);
+  font-size: var(--font-size-sm);
+  text-align: center;
+}
+
+.scores {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+}
+
+.scoreInput {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.scoreInput label {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.scoreInput input {
+  width: 60px;
+  height: 50px;
+  text-align: center;
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  border: 2px solid var(--border-color);
+  border-radius: var(--border-radius);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.scoreInput input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.scoreInput input::-webkit-inner-spin-button,
+.scoreInput input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.scoreInput input[type='number'] {
+  -moz-appearance: textfield;
+}
+
+.dash {
+  font-size: var(--font-size-2xl);
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-top: var(--spacing-lg);
+}
+
+.actions {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-sm);
+}
+
+.locked {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+  background-color: var(--color-gray-100);
+  border-radius: var(--border-radius);
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.lockIcon {
+  font-size: var(--font-size-base);
+}
+
+.submittedPick {
+  margin-top: var(--spacing-md);
+  padding: var(--spacing-sm);
+  background-color: var(--color-gray-50);
+  border-radius: var(--border-radius-sm);
+  text-align: center;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+@media (prefers-color-scheme: dark) {
+  .locked {
+    background-color: var(--color-gray-800);
+  }
+
+  .submittedPick {
+    background-color: var(--color-gray-800);
+  }
+}
