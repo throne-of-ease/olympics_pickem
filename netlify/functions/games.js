@@ -1,10 +1,21 @@
 import { jsonResponse, errorResponse, corsHeaders } from './utils/response.js';
-import { loadAllPlayerPicks, loadMockGamesData } from './utils/pickLoader.js';
+import { loadAllPlayerPicks, loadMockGamesData, loadScoringConfig } from './utils/pickLoader.js';
 
 const ESPN_BASE_URL = 'https://site.api.espn.com/apis/site/v2/sports/hockey/olympics-mens-ice-hockey';
 
 // Use mock data if ESPN returns empty or USE_MOCK_DATA env var is set
 const USE_MOCK_DATA = process.env.USE_MOCK_DATA === 'true';
+
+// Load scoring config for points calculation
+const scoringConfig = loadScoringConfig();
+
+// Calculate game result from scores
+function getResult(scoreA, scoreB) {
+  if (scoreA === null || scoreA === undefined || scoreB === null || scoreB === undefined) return null;
+  if (scoreA > scoreB) return 'win_a';
+  if (scoreB > scoreA) return 'win_b';
+  return 'tie';
+}
 
 export async function handler(event) {
   // Handle CORS preflight
@@ -43,9 +54,14 @@ export async function handler(event) {
     const enrichedGames = games.map(game => {
       const gameStarted = new Date(game.scheduledAt) <= now;
       const gamePicks = picksByGame[game.espnEventId] || [];
+      const isFinal = game.status?.state === 'final';
+      const actualResult = getResult(game.scores?.teamA, game.scores?.teamB);
+      const roundType = game.roundType || 'groupStage';
+      const basePoints = scoringConfig.points[roundType] || 1;
 
       return {
         id: game.espnEventId,
+        game_id: game.espnEventId,
         espn_event_id: game.espnEventId,
         name: game.name,
         short_name: game.shortName,
@@ -55,16 +71,23 @@ export async function handler(event) {
         venue: game.venue,
         score_a: game.scores?.teamA,
         score_b: game.scores?.teamB,
+        result: actualResult,
         team_a: game.teamA,
         team_b: game.teamB,
         picks: gameStarted
-          ? gamePicks.map(p => ({
-              playerId: p.playerId,
-              playerName: p.playerName,
-              predictedScoreA: p.teamAScore,
-              predictedScoreB: p.teamBScore,
-              predictedResult: p.predictedResult,
-            }))
+          ? gamePicks.map(p => {
+              const isCorrect = isFinal && actualResult && p.predictedResult === actualResult;
+              const pointsEarned = isCorrect ? basePoints : 0;
+              return {
+                playerId: p.playerId,
+                playerName: p.playerName,
+                predictedScoreA: p.teamAScore,
+                predictedScoreB: p.teamBScore,
+                predictedResult: p.predictedResult,
+                isCorrect,
+                pointsEarned,
+              };
+            })
           : gamePicks.map(p => ({
               playerId: p.playerId,
               playerName: p.playerName,

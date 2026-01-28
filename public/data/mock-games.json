@@ -5,7 +5,7 @@
       "id": "401845001",
       "name": "Canada vs Germany",
       "shortName": "CAN vs GER",
-      "date": "2026-02-11T12:00:00Z",
+      "date": "2026-01-11T12:00:00Z",
       "season": { "type": { "name": "Group Stage" } },
       "competitions": [{
         "venue": { "fullName": "Palavela Arena" },
@@ -20,7 +20,7 @@
       "id": "401845002",
       "name": "USA vs Finland",
       "shortName": "USA vs FIN",
-      "date": "2026-02-11T16:00:00Z",
+      "date": "2026-01-11T16:00:00Z",
       "season": { "type": { "name": "Group Stage" } },
       "competitions": [{
         "venue": { "fullName": "Palavela Arena" },
@@ -35,7 +35,7 @@
       "id": "401845003",
       "name": "Sweden vs Switzerland",
       "shortName": "SWE vs SUI",
-      "date": "2026-02-11T20:00:00Z",
+      "date": "2026-01-11T20:00:00Z",
       "season": { "type": { "name": "Group Stage" } },
       "competitions": [{
         "venue": { "fullName": "Palavela Arena" },
@@ -50,7 +50,7 @@
       "id": "401845004",
       "name": "Czech Republic vs Slovakia",
       "shortName": "CZE vs SVK",
-      "date": "2026-02-12T12:00:00Z",
+      "date": "2026-01-12T12:00:00Z",
       "season": { "type": { "name": "Group Stage" } },
       "competitions": [{
         "venue": { "fullName": "Palavela Arena" },
@@ -65,7 +65,7 @@
       "id": "401845005",
       "name": "Canada vs USA",
       "shortName": "CAN vs USA",
-      "date": "2026-02-13T20:00:00Z",
+      "date": "2026-01-13T20:00:00Z",
       "season": { "type": { "name": "Group Stage" } },
       "competitions": [{
         "venue": { "fullName": "Palavela Arena" },
@@ -80,7 +80,7 @@
       "id": "401845006",
       "name": "Finland vs Sweden",
       "shortName": "FIN vs SWE",
-      "date": "2026-02-14T16:00:00Z",
+      "date": "2026-01-14T16:00:00Z",
       "season": { "type": { "name": "Group Stage" } },
       "competitions": [{
         "venue": { "fullName": "Palavela Arena" },
@@ -92,10 +92,100 @@
       }]
     },
     {
+      "id": "401845013",
+      "name": "Germany vs Switzerland",
+      "shortName": "GER vs SUI",
+      "date": "2026-01-14T12:00:00Z",
+      "season": { "type": { "name": "Group Stage" } },
+      "competitions": [{
+        "venue": { "fullName": "Palavela Arena" },
+        "status": { "type": { "id": "3", "name": "Final", "shortDetail": "Final" } },
+        "competitors": [
+          { "homeAway": "away", "score": "2", "team": { "id": "2", "displayName": "Germany", "abbreviation": "GER", "logo": "https://a.espncdn.com/i/teamlogos/countries/500/ger.png", "color": "000000" } },
+          { "homeAway": "home", "score": "4", "team": { "id": "6", "displayName": "Switzerland", "abbreviation": "SUI", "logo": "https://a.espncdn.com/i/teamlogos/countries/500/sui.png", "color": "FF0000" } }
+        ]
+      }]
+    },
+    {
+      "id": "401845014",
+      "name": "Czech Republic vs Finland",
+      "shortName": "CZE vs FIN",
+      "date": "2026-01-15T12:00:00Z",
+      "season": { "type": { "name": "Group Stage" } },
+      "competitions": [{
+        "venue": { "fullName": "Palavela Arena" },
+        "status": { "type": { "id": "3", "name": "Final", "shortDetail": "Final" } },
+        "competitors": [
+          { "homeAway": "away", "score": "1", "team": { "id": "7", "displayName": "Czech Republic", "abbreviation": "CZE", "logo": "https://a.espncdn.com/i/teamlogos/countries/500/cze.png", "color": "11457E" } },
+          { "homeAway": "home", "score": "3", "team": { "id": "4", "displayName": "Finland", "abbreviation": "FIN", "logo": "https://a.espncdn.com/i/teamlogos/countries/500/fin.png", "color": "003580" } }
+        ]
+      }]
+    },
+    {
+      "id": "401845015",
+      "name": "Slovakia vs Canada",
+      "shortName": "SVK vs CAN",
+      "date": "2026-01-15T16:00:00Z",
+      "season": { "type": { "name": "Group Stage" } },
+      "competitions": [{
+        "venue": { "fullName": "Palavela Arena" },
+        "status": { "type": { "id": "3", "name": "Final", "shortDetail": "Final" } },
+        "competitors": [
+          { "homeAway": "away", "score": "0", "team": { "id": "8", "displayName": "Slovakia", "abbreviation": "SVK", "logo": "https://a.espncdn.com/i/teamlogos/countries/500/svk.png", "color": "0B4EA2" } },
+          { "homeAway": "home", "score": "6", "team": { "id": "1", "displayName": "Canada", "abbreviation": "CAN", "logo": "https://a.espncdn.com/i/teamlogos/countries/500/can.png", "color": "FF0000" } }
+        ]
+      }]
+    },
+    {
+      "id": "401845016",
+      "name": "USA vs Germany",
+      "shortName": "USA vs GER",
+      "date": "2026-01-15T20:00:00Z",
+      "season": { "type": { "name": "Group Stage" } },
+      "competitions": [{
+        "venue": { "fullName": "Palavela Arena" },
+        "status": { "type": { "id": "3", "name": "Final", "shortDetail": "Final" } },
+        "competitors": [
+          { "homeAway": "away", "score": "7", "team": { "id": "3", "displayName": "United States", "abbreviation": "USA", "logo": "https://a.espncdn.com/i/teamlogos/countries/500/usa.png", "color": "002868" } },
+          { "homeAway": "home", "score": "1", "team": { "id": "2", "displayName": "Germany", "abbreviation": "GER", "logo": "https://a.espncdn.com/i/teamlogos/countries/500/ger.png", "color": "000000" } }
+        ]
+      }]
+    },
+    {
+      "id": "401845017",
+      "name": "Sweden vs Slovakia",
+      "shortName": "SWE vs SVK",
+      "date": "2026-01-16T12:00:00Z",
+      "season": { "type": { "name": "Group Stage" } },
+      "competitions": [{
+        "venue": { "fullName": "Palavela Arena" },
+        "status": { "type": { "id": "3", "name": "Final", "shortDetail": "Final" } },
+        "competitors": [
+          { "homeAway": "away", "score": "5", "team": { "id": "5", "displayName": "Sweden", "abbreviation": "SWE", "logo": "https://a.espncdn.com/i/teamlogos/countries/500/swe.png", "color": "006AA7" } },
+          { "homeAway": "home", "score": "2", "team": { "id": "8", "displayName": "Slovakia", "abbreviation": "SVK", "logo": "https://a.espncdn.com/i/teamlogos/countries/500/svk.png", "color": "0B4EA2" } }
+        ]
+      }]
+    },
+    {
+      "id": "401845018",
+      "name": "Switzerland vs Czech Republic",
+      "shortName": "SUI vs CZE",
+      "date": "2026-01-16T16:00:00Z",
+      "season": { "type": { "name": "Group Stage" } },
+      "competitions": [{
+        "venue": { "fullName": "Palavela Arena" },
+        "status": { "type": { "id": "3", "name": "Final", "shortDetail": "Final" } },
+        "competitors": [
+          { "homeAway": "away", "score": "2", "team": { "id": "6", "displayName": "Switzerland", "abbreviation": "SUI", "logo": "https://a.espncdn.com/i/teamlogos/countries/500/sui.png", "color": "FF0000" } },
+          { "homeAway": "home", "score": "2", "team": { "id": "7", "displayName": "Czech Republic", "abbreviation": "CZE", "logo": "https://a.espncdn.com/i/teamlogos/countries/500/cze.png", "color": "11457E" } }
+        ]
+      }]
+    },
+    {
       "id": "401845007",
       "name": "Canada vs Sweden - Quarterfinal",
       "shortName": "CAN vs SWE",
-      "date": "2026-02-18T15:00:00Z",
+      "date": "2026-01-18T15:00:00Z",
       "season": { "type": { "name": "Quarterfinal" } },
       "competitions": [{
         "venue": { "fullName": "Palavela Arena" },
@@ -110,7 +200,7 @@
       "id": "401845008",
       "name": "USA vs Finland - Quarterfinal",
       "shortName": "USA vs FIN",
-      "date": "2026-02-18T19:00:00Z",
+      "date": "2026-01-18T19:00:00Z",
       "season": { "type": { "name": "Quarterfinal" } },
       "competitions": [{
         "venue": { "fullName": "Palavela Arena" },
@@ -122,17 +212,47 @@
       }]
     },
     {
+      "id": "401845019",
+      "name": "Switzerland vs Slovakia - Quarterfinal",
+      "shortName": "SUI vs SVK",
+      "date": "2026-01-19T12:00:00Z",
+      "season": { "type": { "name": "Quarterfinal" } },
+      "competitions": [{
+        "venue": { "fullName": "Palavela Arena" },
+        "status": { "type": { "id": "3", "name": "Final", "shortDetail": "Final" } },
+        "competitors": [
+          { "homeAway": "away", "score": "3", "team": { "id": "6", "displayName": "Switzerland", "abbreviation": "SUI", "logo": "https://a.espncdn.com/i/teamlogos/countries/500/sui.png", "color": "FF0000" } },
+          { "homeAway": "home", "score": "1", "team": { "id": "8", "displayName": "Slovakia", "abbreviation": "SVK", "logo": "https://a.espncdn.com/i/teamlogos/countries/500/svk.png", "color": "0B4EA2" } }
+        ]
+      }]
+    },
+    {
+      "id": "401845020",
+      "name": "Germany vs Czech Republic - Quarterfinal",
+      "shortName": "GER vs CZE",
+      "date": "2026-01-19T16:00:00Z",
+      "season": { "type": { "name": "Quarterfinal" } },
+      "competitions": [{
+        "venue": { "fullName": "Palavela Arena" },
+        "status": { "type": { "id": "3", "name": "Final", "shortDetail": "Final" } },
+        "competitors": [
+          { "homeAway": "away", "score": "2", "team": { "id": "2", "displayName": "Germany", "abbreviation": "GER", "logo": "https://a.espncdn.com/i/teamlogos/countries/500/ger.png", "color": "000000" } },
+          { "homeAway": "home", "score": "4", "team": { "id": "7", "displayName": "Czech Republic", "abbreviation": "CZE", "logo": "https://a.espncdn.com/i/teamlogos/countries/500/cze.png", "color": "11457E" } }
+        ]
+      }]
+    },
+    {
       "id": "401845009",
       "name": "Canada vs USA - Semifinal",
       "shortName": "CAN vs USA",
-      "date": "2026-02-20T19:00:00Z",
+      "date": "2026-01-20T19:00:00Z",
       "season": { "type": { "name": "Semifinal" } },
       "competitions": [{
         "venue": { "fullName": "Palavela Arena" },
-        "status": { "type": { "id": "2", "name": "In Progress", "shortDetail": "2nd Period" }, "period": 2, "displayClock": "8:42" },
+        "status": { "type": { "id": "3", "name": "Final", "shortDetail": "Final" } },
         "competitors": [
-          { "homeAway": "away", "score": "2", "team": { "id": "1", "displayName": "Canada", "abbreviation": "CAN", "logo": "https://a.espncdn.com/i/teamlogos/countries/500/can.png", "color": "FF0000" } },
-          { "homeAway": "home", "score": "1", "team": { "id": "3", "displayName": "United States", "abbreviation": "USA", "logo": "https://a.espncdn.com/i/teamlogos/countries/500/usa.png", "color": "002868" } }
+          { "homeAway": "away", "score": "4", "team": { "id": "1", "displayName": "Canada", "abbreviation": "CAN", "logo": "https://a.espncdn.com/i/teamlogos/countries/500/can.png", "color": "FF0000" } },
+          { "homeAway": "home", "score": "3", "team": { "id": "3", "displayName": "United States", "abbreviation": "USA", "logo": "https://a.espncdn.com/i/teamlogos/countries/500/usa.png", "color": "002868" } }
         ]
       }]
     },
@@ -140,44 +260,44 @@
       "id": "401845010",
       "name": "Finland vs Sweden - Semifinal",
       "shortName": "FIN vs SWE",
-      "date": "2026-02-20T15:00:00Z",
+      "date": "2026-01-20T15:00:00Z",
       "season": { "type": { "name": "Semifinal" } },
       "competitions": [{
         "venue": { "fullName": "Palavela Arena" },
-        "status": { "type": { "id": "1", "name": "Scheduled", "shortDetail": "2/20 - 3:00 PM" } },
+        "status": { "type": { "id": "3", "name": "Final", "shortDetail": "Final" } },
         "competitors": [
-          { "homeAway": "away", "team": { "id": "4", "displayName": "Finland", "abbreviation": "FIN", "logo": "https://a.espncdn.com/i/teamlogos/countries/500/fin.png", "color": "003580" } },
-          { "homeAway": "home", "team": { "id": "5", "displayName": "Sweden", "abbreviation": "SWE", "logo": "https://a.espncdn.com/i/teamlogos/countries/500/swe.png", "color": "006AA7" } }
+          { "homeAway": "away", "score": "2", "team": { "id": "4", "displayName": "Finland", "abbreviation": "FIN", "logo": "https://a.espncdn.com/i/teamlogos/countries/500/fin.png", "color": "003580" } },
+          { "homeAway": "home", "score": "3", "team": { "id": "5", "displayName": "Sweden", "abbreviation": "SWE", "logo": "https://a.espncdn.com/i/teamlogos/countries/500/swe.png", "color": "006AA7" } }
         ]
       }]
     },
     {
       "id": "401845011",
-      "name": "Bronze Medal Game",
-      "shortName": "Bronze Medal",
-      "date": "2026-02-21T15:00:00Z",
+      "name": "USA vs Sweden - Bronze Medal Game",
+      "shortName": "USA vs SWE",
+      "date": "2026-01-21T15:00:00Z",
       "season": { "type": { "name": "Bronze Medal Game" } },
       "competitions": [{
         "venue": { "fullName": "Palavela Arena" },
-        "status": { "type": { "id": "1", "name": "Scheduled", "shortDetail": "2/21 - 3:00 PM" } },
+        "status": { "type": { "id": "3", "name": "Final", "shortDetail": "Final" } },
         "competitors": [
-          { "homeAway": "away", "team": { "id": "0", "displayName": "TBD", "abbreviation": "TBD" } },
-          { "homeAway": "home", "team": { "id": "0", "displayName": "TBD", "abbreviation": "TBD" } }
+          { "homeAway": "away", "score": "5", "team": { "id": "3", "displayName": "United States", "abbreviation": "USA", "logo": "https://a.espncdn.com/i/teamlogos/countries/500/usa.png", "color": "002868" } },
+          { "homeAway": "home", "score": "3", "team": { "id": "5", "displayName": "Sweden", "abbreviation": "SWE", "logo": "https://a.espncdn.com/i/teamlogos/countries/500/swe.png", "color": "006AA7" } }
         ]
       }]
     },
     {
       "id": "401845012",
-      "name": "Gold Medal Game",
-      "shortName": "Gold Medal",
-      "date": "2026-02-22T12:00:00Z",
+      "name": "Canada vs Finland - Gold Medal Game",
+      "shortName": "CAN vs FIN",
+      "date": "2026-01-22T12:00:00Z",
       "season": { "type": { "name": "Gold Medal Game" } },
       "competitions": [{
         "venue": { "fullName": "Palavela Arena" },
-        "status": { "type": { "id": "1", "name": "Scheduled", "shortDetail": "2/22 - 12:00 PM" } },
+        "status": { "type": { "id": "3", "name": "Final", "shortDetail": "Final" } },
         "competitors": [
-          { "homeAway": "away", "team": { "id": "0", "displayName": "TBD", "abbreviation": "TBD" } },
-          { "homeAway": "home", "team": { "id": "0", "displayName": "TBD", "abbreviation": "TBD" } }
+          { "homeAway": "away", "score": "3", "team": { "id": "1", "displayName": "Canada", "abbreviation": "CAN", "logo": "https://a.espncdn.com/i/teamlogos/countries/500/can.png", "color": "FF0000" } },
+          { "homeAway": "home", "score": "2", "team": { "id": "4", "displayName": "Finland", "abbreviation": "FIN", "logo": "https://a.espncdn.com/i/teamlogos/countries/500/fin.png", "color": "003580" } }
         ]
       }]
     }

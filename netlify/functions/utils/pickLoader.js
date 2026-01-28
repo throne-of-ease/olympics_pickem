@@ -82,16 +82,18 @@ export function loadPlayerPicks(player) {
  */
 function parsePickRow(row, playerId) {
   const gameId = row.game_id || row.gameid || row.event_id;
-  const teamAScore = parseInt(row.team_a_score || row.teama_score, 10);
-  const teamBScore = parseInt(row.team_b_score || row.teamb_score, 10);
+  const rawScoreA = parseInt(row.team_a_score || row.teama_score, 10);
+  const rawScoreB = parseInt(row.team_b_score || row.teamb_score, 10);
+  const teamAScore = isNaN(rawScoreA) ? 0 : rawScoreA;
+  const teamBScore = isNaN(rawScoreB) ? 0 : rawScoreB;
 
   return {
     playerId,
     gameId: gameId?.toString(),
     teamA: row.team_a || row.teama,
-    teamAScore: isNaN(teamAScore) ? 0 : teamAScore,
+    teamAScore,
     teamB: row.team_b || row.teamb,
-    teamBScore: isNaN(teamBScore) ? 0 : teamBScore,
+    teamBScore,
     predictedResult: getResult(teamAScore, teamBScore),
   };
 }

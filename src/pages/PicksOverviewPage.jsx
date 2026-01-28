@@ -303,8 +303,8 @@ function TeamBadge({ team, isWinner, showName = false, showFlag = false }) {
   return (
     <div className={`${styles.teamBadge} ${isWinner ? styles.winnerBadge : ''}`}>
       {showFlag && <CountryFlag team={team} size="small" />}
-      {team.logo_url && (
-        <img src={team.logo_url} alt="" className={styles.teamLogo} />
+      {team.logo && (
+        <img src={team.logo} alt="" className={styles.teamLogo} />
       )}
       {showName && <span className={styles.teamNameBadge}>{team.abbreviation || team.name?.slice(0, 3).toUpperCase()}</span>}
     </div>
@@ -321,22 +321,15 @@ function PickDisplay({ pick, game, variant }) {
                     variant === 'card' ? styles.pickCard :
                     styles.pickTimeline;
 
-  const resultClass = isFinal ? (isCorrect ? styles.correct : styles.incorrect) : '';
+  const resultClass = isFinal ? (isCorrect ? styles.correct : styles.incorrect) : styles.pending;
+
+  const getAbbrev = (team) => team?.abbreviation || team?.name?.slice(0, 3).toUpperCase() || '?';
 
   if (variant === 'compact') {
     return (
       <div className={`${baseClass} ${resultClass}`}>
         {predictedWinner ? (
-          <>
-            {predictedWinner.logo_url && (
-              <img src={predictedWinner.logo_url} alt="" className={styles.pickLogo} />
-            )}
-            {isFinal && (
-              <span className={styles.pickPoints}>
-                {pick.pointsEarned > 0 ? `+${pick.pointsEarned}` : '0'}
-              </span>
-            )}
-          </>
+          <span className={styles.pickAbbrev}>{getAbbrev(predictedWinner)}</span>
         ) : (
           <span className={styles.pickTie}>TIE</span>
         )}
@@ -362,8 +355,8 @@ function PickDisplay({ pick, game, variant }) {
   // timeline
   return (
     <div className={`${baseClass} ${resultClass}`}>
-      {predictedWinner?.logo_url && (
-        <img src={predictedWinner.logo_url} alt="" className={styles.timelinePickLogo} />
+      {predictedWinner?.logo && (
+        <img src={predictedWinner.logo} alt="" className={styles.timelinePickLogo} />
       )}
       {!predictedWinner && <span className={styles.timelineTie}>T</span>}
       {isFinal && pick.pointsEarned > 0 && (

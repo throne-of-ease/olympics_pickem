@@ -255,19 +255,44 @@
   align-items: center;
   justify-content: center;
   gap: 2px;
-  padding: 3px 4px;
+  padding: 4px 6px;
   border-radius: 4px;
   min-width: 36px;
+  border: 2px solid transparent;
+  transition: all var(--transition-fast);
+}
+
+.pickCompact.pending {
+  background: var(--color-gray-100);
+  border-color: var(--color-gray-300);
 }
 
 .pickCompact.correct {
-  background: rgba(40, 167, 69, 0.2);
-  border: 1px solid var(--color-success);
+  background: rgba(40, 167, 69, 0.25);
+  border-color: var(--color-success);
 }
 
 .pickCompact.incorrect {
-  background: rgba(220, 53, 69, 0.12);
-  border: 1px solid rgba(220, 53, 69, 0.3);
+  background: rgba(220, 53, 69, 0.1);
+  border-color: rgba(220, 53, 69, 0.4);
+}
+
+.pickAbbrev {
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+}
+
+.pickCompact.correct .pickAbbrev {
+  color: var(--color-success-dark, #1e7e34);
+}
+
+.pickCompact.incorrect .pickAbbrev {
+  color: var(--text-muted);
+}
+
+.pickCompact.pending .pickAbbrev {
+  color: var(--text-primary);
 }
 
 .pickLogo {
@@ -290,9 +315,10 @@
 }
 
 .pickTie {
-  font-weight: 600;
+  font-weight: 700;
   font-size: 10px;
   color: var(--text-secondary);
+  letter-spacing: 0.5px;
 }
 
 .noPick,
@@ -884,9 +910,13 @@
   }
 
   .pickCompact {
-    padding: 2px 3px;
+    padding: 3px 4px;
     min-width: 32px;
     gap: 1px;
+  }
+
+  .pickAbbrev {
+    font-size: 10px;
   }
 
   .pickLogo {
@@ -956,7 +986,11 @@
 
   .pickCompact {
     min-width: 28px;
-    padding: 2px;
+    padding: 2px 3px;
+  }
+
+  .pickAbbrev {
+    font-size: 9px;
   }
 
   .pickLogo {
@@ -998,6 +1032,23 @@
 
   .gameRow:hover {
     background: var(--color-gray-800);
+  }
+
+  .pickCompact.pending {
+    background: var(--color-gray-700);
+    border-color: var(--color-gray-500);
+  }
+
+  .pickCompact.correct {
+    background: rgba(40, 167, 69, 0.3);
+  }
+
+  .pickCompact.correct .pickAbbrev {
+    color: #5cdb7a;
+  }
+
+  .pickCompact.pending .pickAbbrev {
+    color: var(--text-light);
   }
 
   .playerCard {

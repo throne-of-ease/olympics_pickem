@@ -5,9 +5,17 @@ game_id,team_a,team_a_score,team_b,team_b_score
 401845004,Czech Republic,4,Slovakia,3
 401845005,Canada,1,USA,3
 401845006,Finland,2,Sweden,2
+401845013,Germany,4,Switzerland,3
+401845014,Czech Republic,2,Finland,4
+401845015,Slovakia,1,Canada,2
+401845016,USA,3,Germany,2
+401845017,Sweden,2,Slovakia,2
+401845018,Switzerland,4,Czech Republic,2
 401845007,Canada,2,Sweden,3
 401845008,USA,3,Finland,4
+401845019,Switzerland,1,Slovakia,2
+401845020,Germany,5,Czech Republic,3
 401845009,Canada,4,USA,2
 401845010,Finland,1,Sweden,3
-401845011,Canada,3,Finland,2
-401845012,USA,5,Sweden,2
+401845011,USA,2,Sweden,4
+401845012,Canada,2,Finland,4
