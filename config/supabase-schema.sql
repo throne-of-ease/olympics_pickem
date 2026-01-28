@@ -266,7 +266,16 @@ CREATE TRIGGER update_picks_updated_at
   EXECUTE FUNCTION update_updated_at();
 
 -- ===========================================
+-- PERMISSIONS FOR ANONYMOUS USERS
+-- Required for registration flow (validate invite before authenticated)
+-- ===========================================
+GRANT EXECUTE ON FUNCTION validate_invite_code(TEXT) TO anon;
+GRANT EXECUTE ON FUNCTION mark_invite_used(TEXT, UUID) TO anon;
+GRANT EXECUTE ON FUNCTION generate_invite_code() TO authenticated;
+
+-- ===========================================
 -- INITIAL ADMIN SETUP
 -- After first user registers, run this to make them admin:
--- UPDATE profiles SET is_admin = TRUE WHERE email = 'admin@example.com';
+-- UPDATE profiles SET is_admin = TRUE
+-- WHERE id = (SELECT id FROM auth.users WHERE email = 'admin@example.com');
 -- ===========================================
