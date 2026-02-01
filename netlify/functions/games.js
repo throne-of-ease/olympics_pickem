@@ -1,10 +1,14 @@
 import { jsonResponse, errorResponse, corsHeaders } from './utils/response.js';
 import { loadAllPlayerPicks, loadMockGamesData, loadScoringConfig, loadGameOverrides } from './utils/pickLoader.js';
+import { createSupabaseClient, getAllProfiles, getAllPicks, isSupabaseConfigured } from './utils/supabase.js';
 
 const ESPN_BASE_URL = 'https://site.api.espn.com/apis/site/v2/sports/hockey/olympics-mens-ice-hockey';
 
 // Use mock data if ESPN returns empty or USE_MOCK_DATA env var is set
 const USE_MOCK_DATA = process.env.USE_MOCK_DATA === 'true';
+
+// Use CSV picks instead of Supabase (for backward compatibility)
+const USE_CSV_PICKS = process.env.USE_CSV_PICKS === 'true';
 
 // Load scoring config for points calculation
 const scoringConfig = loadScoringConfig();
@@ -62,8 +66,8 @@ export async function handler(event) {
     // Apply any game overrides for testing
     games = applyGameOverrides(games);
 
-    // Load all player picks from static CSVs
-    const playersWithPicks = loadAllPlayerPicks();
+    // Load picks - prefer Supabase, fall back to CSV
+    const playersWithPicks = await loadPlayersWithPicks();
 
     // Create a lookup of picks by game ID
     const picksByGame = {};
@@ -267,4 +271,60 @@ function parseRoundType(seasonTypeName, eventName) {
   }
 
   return 'groupStage';
+}
+
+/**
+ * Load players with their picks from Supabase or CSV fallback
+ */
+async function loadPlayersWithPicks() {
+  // Use CSV if explicitly requested or Supabase not configured
+  if (USE_CSV_PICKS || !isSupabaseConfigured()) {
+    console.log('Loading picks from CSV files');
+    return loadAllPlayerPicks();
+  }
+
+  try {
+    console.log('Loading picks from Supabase');
+    const supabase = createSupabaseClient();
+    if (!supabase) {
+      console.warn('Supabase client not available, falling back to CSV');
+      return loadAllPlayerPicks();
+    }
+
+    // Get all profiles (users)
+    const profiles = await getAllProfiles(supabase);
+    if (!profiles || profiles.length === 0) {
+      console.log('No profiles in Supabase, falling back to CSV');
+      return loadAllPlayerPicks();
+    }
+
+    // Get all picks
+    const allPicks = await getAllPicks(supabase);
+
+    // Group picks by user
+    const picksByUser = {};
+    for (const pick of allPicks) {
+      const userId = pick.user_id;
+      if (!picksByUser[userId]) {
+        picksByUser[userId] = [];
+      }
+      picksByUser[userId].push({
+        playerId: userId,
+        gameId: pick.game_id,
+        teamAScore: pick.team_a_score,
+        teamBScore: pick.team_b_score,
+        predictedResult: getResult(pick.team_a_score, pick.team_b_score),
+      });
+    }
+
+    // Combine profiles with picks
+    return profiles.map(profile => ({
+      id: profile.id,
+      name: profile.name || profile.email || 'Unknown',
+      picks: picksByUser[profile.id] || [],
+    }));
+  } catch (error) {
+    console.error('Error loading from Supabase, falling back to CSV:', error.message);
+    return loadAllPlayerPicks();
+  }
 }
