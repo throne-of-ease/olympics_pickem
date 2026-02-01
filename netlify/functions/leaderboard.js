@@ -1,5 +1,5 @@
 import { jsonResponse, errorResponse, corsHeaders } from './utils/response.js';
-import { loadAllPlayerPicks, loadMockGamesData, loadScoringConfig } from './utils/pickLoader.js';
+import { loadAllPlayerPicks, loadMockGamesData, loadScoringConfig, loadGameOverrides } from './utils/pickLoader.js';
 
 const ESPN_BASE_URL = 'https://site.api.espn.com/apis/site/v2/sports/hockey/olympics-mens-ice-hockey';
 
@@ -8,6 +8,30 @@ const USE_MOCK_DATA = process.env.USE_MOCK_DATA === 'true';
 
 // Load scoring config
 const scoringConfig = loadScoringConfig();
+
+// Apply game overrides if enabled (for testing)
+function applyGameOverrides(games) {
+  const overrides = loadGameOverrides();
+  if (!overrides.enabled || !overrides.overrides) {
+    return games;
+  }
+
+  console.log('Applying game overrides for leaderboard');
+
+  return games.map(game => {
+    const override = overrides.overrides[game.espnEventId];
+    if (!override) return game;
+
+    return {
+      ...game,
+      scores: {
+        teamA: override.scoreA,
+        teamB: override.scoreB,
+      },
+      status: { state: override.status || 'final' },
+    };
+  });
+}
 
 export async function handler(event) {
   if (event.httpMethod === 'OPTIONS') {
@@ -20,7 +44,10 @@ export async function handler(event) {
 
   try {
     // Fetch games from ESPN API
-    const games = await fetchGamesFromESPN();
+    let games = await fetchGamesFromESPN();
+
+    // Apply any game overrides for testing
+    games = applyGameOverrides(games);
 
     // Load all player picks from static CSVs
     const playersWithPicks = loadAllPlayerPicks();
