@@ -15,16 +15,23 @@ export function AppProvider({ children }) {
     setLoading(prev => ({ ...prev, games: true }));
     setError(prev => ({ ...prev, games: null }));
 
+    // Add timeout to prevent indefinite loading
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+
     try {
-      const response = await fetch('/api/games');
+      const response = await fetch('/api/games', { signal: controller.signal });
+      clearTimeout(timeoutId);
       if (!response.ok) throw new Error('Failed to fetch games');
 
       const data = await response.json();
       setGames(data.games || []);
       setLastUpdated(new Date(data.timestamp));
     } catch (err) {
-      console.error('Error fetching games:', err);
-      setError(prev => ({ ...prev, games: err.message }));
+      clearTimeout(timeoutId);
+      const message = err.name === 'AbortError' ? 'Request timed out' : err.message;
+      console.error('Error fetching games:', message);
+      setError(prev => ({ ...prev, games: message }));
     } finally {
       setLoading(prev => ({ ...prev, games: false }));
     }
@@ -34,8 +41,13 @@ export function AppProvider({ children }) {
     setLoading(prev => ({ ...prev, leaderboard: true }));
     setError(prev => ({ ...prev, leaderboard: null }));
 
+    // Add timeout to prevent indefinite loading
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+
     try {
-      const response = await fetch('/api/leaderboard');
+      const response = await fetch('/api/leaderboard', { signal: controller.signal });
+      clearTimeout(timeoutId);
       if (!response.ok) throw new Error('Failed to fetch leaderboard');
 
       const data = await response.json();
@@ -46,8 +58,10 @@ export function AppProvider({ children }) {
         name: p.playerName,
       })) || []);
     } catch (err) {
-      console.error('Error fetching leaderboard:', err);
-      setError(prev => ({ ...prev, leaderboard: err.message }));
+      clearTimeout(timeoutId);
+      const message = err.name === 'AbortError' ? 'Request timed out' : err.message;
+      console.error('Error fetching leaderboard:', message);
+      setError(prev => ({ ...prev, leaderboard: message }));
     } finally {
       setLoading(prev => ({ ...prev, leaderboard: false }));
     }
