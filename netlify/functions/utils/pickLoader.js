@@ -145,6 +145,33 @@ export function loadMockGamesData() {
 }
 
 /**
+ * Load game overrides from JSON file for testing
+ * @returns {Object} Game overrides config
+ */
+export function loadGameOverrides() {
+  const baseDir = getBaseDataDir();
+  const overridesPath = join(baseDir, 'game-overrides.json');
+
+  try {
+    if (existsSync(overridesPath)) {
+      const content = readFileSync(overridesPath, 'utf-8');
+      const data = JSON.parse(content);
+
+      if (!data.enabled) {
+        return { enabled: false, overrides: {} };
+      }
+
+      console.log('Loaded game overrides:', Object.keys(data.overrides || {}).length, 'games');
+      return data;
+    }
+    return { enabled: false, overrides: {} };
+  } catch (error) {
+    console.warn('Failed to load game overrides:', error.message);
+    return { enabled: false, overrides: {} };
+  }
+}
+
+/**
  * Load scoring config from JSON file
  * @returns {Object} Scoring config with defaults
  */
@@ -179,4 +206,5 @@ export default {
   loadAllPlayerPicks,
   loadMockGamesData,
   loadScoringConfig,
+  loadGameOverrides,
 };
