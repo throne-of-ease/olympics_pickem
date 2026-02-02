@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useGames } from '../hooks/useGames';
+import { useApp } from '../context/AppContext';
 import { GameList, GameFilters } from '../components/game';
 import { Button } from '../components/common';
 import { usePolling } from '../hooks/usePolling';
@@ -7,11 +8,22 @@ import styles from './GamesPage.module.css';
 
 export function GamesPage() {
   const { games, categorizedGames, gamesByRound, loading, error, refresh } = useGames();
+  const { tournamentProgress } = useApp();
   const [filter, setFilter] = useState('all');
   const [round, setRound] = useState('all');
 
-  // Auto-refresh every 60 seconds
-  usePolling(refresh, 60000, true);
+  // Smart polling: adjusts interval based on tournament state
+  // - 1 hour before tournament starts
+  // - 5 minutes during live games
+  // - 1 hour between games
+  // - Disabled after tournament ends
+  // Also pauses when browser tab is hidden
+  usePolling(refresh, {
+    interval: 60000,
+    tournamentProgress,
+    smartPolling: true,
+    pauseOnHidden: true,
+  });
 
   const filteredGames = useMemo(() => {
     let result = games;

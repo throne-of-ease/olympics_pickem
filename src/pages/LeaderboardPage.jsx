@@ -7,8 +7,14 @@ import styles from './LeaderboardPage.module.css';
 export function LeaderboardPage() {
   const { leaderboard, tournamentProgress, loading, error, refresh } = useLeaderboard();
 
-  // Auto-refresh every 60 seconds
-  usePolling(refresh, 60000, true);
+  // Smart polling: adjusts interval based on tournament state
+  // Also pauses when browser tab is hidden
+  usePolling(refresh, {
+    interval: 60000,
+    tournamentProgress,
+    smartPolling: true,
+    pauseOnHidden: true,
+  });
 
   if (loading && leaderboard.length === 0) {
     return <Loading text="Loading leaderboard..." />;

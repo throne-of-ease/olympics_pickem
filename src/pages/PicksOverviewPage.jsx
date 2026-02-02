@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { format, parseISO, isAfter } from 'date-fns';
 import { useGames } from '../hooks/useGames';
 import { useLeaderboard } from '../hooks/useLeaderboard';
+import { useApp } from '../context/AppContext';
 import { Button, CountryFlag, Loading } from '../components/common';
 import { usePolling } from '../hooks/usePolling';
 import styles from './PicksOverviewPage.module.css';
@@ -14,13 +15,20 @@ const DESIGN_OPTIONS = [
 export function PicksOverviewPage() {
   const { games, loading: gamesLoading, error: gamesError, refresh: refreshGames } = useGames();
   const { leaderboard, loading: lbLoading, error: lbError, refresh: refreshLb } = useLeaderboard();
+  const { tournamentProgress } = useApp();
   const [design, setDesign] = useState('compact');
 
   const loading = gamesLoading || lbLoading;
   const error = gamesError || lbError;
 
-  // Auto-refresh every 60 seconds
-  usePolling(() => { refreshGames(); refreshLb(); }, 60000, true);
+  // Smart polling: adjusts interval based on tournament state
+  // Also pauses when browser tab is hidden
+  usePolling(() => { refreshGames(); refreshLb(); }, {
+    interval: 60000,
+    tournamentProgress,
+    smartPolling: true,
+    pauseOnHidden: true,
+  });
 
   // Sort players by total points (leader first)
   const sortedPlayers = useMemo(() => {
