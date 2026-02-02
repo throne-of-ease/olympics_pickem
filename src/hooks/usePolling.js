@@ -20,13 +20,13 @@ export function getSmartPollingInterval(tournamentProgress) {
     return null; // Disable polling
   }
 
-  // Games currently in progress - poll frequently
+  // Games currently in progress - poll every 5 minutes
   if (inProgressGames > 0) {
-    return 30000; // 30 seconds
+    return 300000; // 5 minutes
   }
 
-  // Between games - moderate polling
-  return 300000; // 5 minutes
+  // Between games - poll infrequently
+  return 3600000; // 1 hour
 }
 
 /**

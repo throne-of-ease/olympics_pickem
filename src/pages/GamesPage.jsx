@@ -14,8 +14,8 @@ export function GamesPage() {
 
   // Smart polling: adjusts interval based on tournament state
   // - 1 hour before tournament starts
-  // - 30 seconds during live games
-  // - 5 minutes between games
+  // - 5 minutes during live games
+  // - 1 hour between games
   // - Disabled after tournament ends
   // Also pauses when browser tab is hidden
   usePolling(refresh, {
