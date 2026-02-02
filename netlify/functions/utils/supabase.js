@@ -176,7 +176,10 @@ export async function getAllPicks(supabase) {
       profiles (id, name)
     `);
 
-  if (error) return [];
+  if (error) {
+    console.error('Error fetching picks:', error.message, error.details, error.hint);
+    return [];
+  }
   return data;
 }
 
