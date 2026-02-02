@@ -169,17 +169,17 @@ export async function getUserPicks(supabase, userId) {
 export async function getAllPicks(supabase) {
   if (!supabase) return [];
 
+  // Simple query without join - the join might fail if foreign key isn't set up
   const { data, error } = await supabase
     .from('picks')
-    .select(`
-      *,
-      profiles (id, name)
-    `);
+    .select('*');
 
   if (error) {
     console.error('Error fetching picks:', error.message, error.details, error.hint);
     return [];
   }
+
+  console.log('DEBUG getAllPicks: raw data count:', data?.length, 'first item:', data?.[0]);
   return data;
 }
 
