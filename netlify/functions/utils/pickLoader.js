@@ -134,12 +134,19 @@ export async function loadAllPlayerPicksFromSupabase() {
       console.warn('Supabase not configured, falling back to static files');
       return loadAllPlayerPicks();
     }
+    console.log('DEBUG: Service role client created successfully');
 
     // Fetch profiles and picks from Supabase
     const [profiles, picks] = await Promise.all([
       getAllProfiles(supabase),
       getAllPicks(supabase),
     ]);
+
+    console.log('DEBUG: Profiles fetched:', profiles?.length || 0, profiles?.map(p => p.name));
+    console.log('DEBUG: Picks fetched:', picks?.length || 0);
+    if (picks?.length > 0) {
+      console.log('DEBUG: Sample picks:', picks.slice(0, 3).map(p => ({ game_id: p.game_id, user_id: p.user_id })));
+    }
 
     if (!profiles || profiles.length === 0) {
       console.warn('No profiles found in Supabase, falling back to static files');

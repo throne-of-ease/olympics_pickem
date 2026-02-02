@@ -36,6 +36,9 @@ export async function handler(event) {
     // Load all player picks from Supabase (falls back to static files if unavailable)
     const playersWithPicks = await loadAllPlayerPicksFromSupabase();
 
+    console.log('DEBUG tournament-data: Players loaded:', playersWithPicks.length);
+    console.log('DEBUG tournament-data: Total picks across players:', playersWithPicks.reduce((sum, p) => sum + (p.picks?.length || 0), 0));
+
     // Build game lookup by ESPN event ID
     const gameMap = new Map(games.map(g => [g.espnEventId, g]));
 
@@ -52,6 +55,9 @@ export async function handler(event) {
         });
       }
     }
+
+    console.log('DEBUG tournament-data: picksByGame keys:', Object.keys(picksByGame));
+    console.log('DEBUG tournament-data: Game IDs from ESPN (first 5):', games.slice(0, 5).map(g => g.espnEventId));
 
     // === GAMES DATA ===
     const enrichedGames = games.map(game => {
