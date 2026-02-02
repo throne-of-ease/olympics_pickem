@@ -9,7 +9,8 @@ import styles from './MyPicksPage.module.css';
 
 export function MyPicksPage() {
   const { user, isAuthenticated } = useAuth();
-  const { games, loading: gamesLoading, fetchGames } = useApp();
+  const { games, loading: appLoading, fetchGames } = useApp();
+  const gamesLoading = appLoading.games;
   const [myPicks, setMyPicks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -18,7 +19,10 @@ export function MyPicksPage() {
 
   // Load user's picks
   const loadPicks = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
 
     try {
       const userPicks = await picksApi.getUserPicks(user.id);
