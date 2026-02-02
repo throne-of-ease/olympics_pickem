@@ -55,9 +55,11 @@ export async function handler(event) {
 
     // === GAMES DATA ===
     const enrichedGames = games.map(game => {
-      const gameStarted = new Date(game.scheduledAt) <= now;
-      const gamePicks = picksByGame[game.espnEventId] || [];
       const isFinal = game.status?.state === 'final';
+      const isInProgress = game.status?.state === 'in_progress';
+      // Picks are visible if game has started OR if game is already final/in-progress (e.g., via overrides)
+      const gameStarted = new Date(game.scheduledAt) <= now || isFinal || isInProgress;
+      const gamePicks = picksByGame[game.espnEventId] || [];
       const actualResult = getResult(game.scores?.teamA, game.scores?.teamB);
       const roundType = game.roundType || 'groupStage';
       const basePoints = scoringConfig.points[roundType] || 1;
