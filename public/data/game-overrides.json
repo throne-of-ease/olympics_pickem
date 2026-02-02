@@ -1,43 +1,7 @@
-{
-  "description": "Manual game result overrides for testing. Set 'enabled' to true and add game overrides to test scoring.",
-  "usage": {
-    "1_enable": "Set 'enabled' to true below",
-    "2_add_overrides": "Add game overrides in the 'overrides' object with game ID as key",
-    "3_format": "Each override needs: scoreA (away team), scoreB (home team), status ('final', 'in_progress', or 'scheduled')"
-  },
-  "enabled": false,
-  "overrides": {
-    "_example_401845001": {
-      "scoreA": 5,
-      "scoreB": 1,
-      "status": "final",
-      "_comment": "This is an example - remove underscore prefix from key to use"
-    }
-  },
-  "testScenarios": {
-    "partial_tournament": {
-      "description": "Enable only first 5 games as final to test partial scoring",
-      "overrides": {
-        "401845001": { "scoreA": 5, "scoreB": 1, "status": "final" },
-        "401845002": { "scoreA": 3, "scoreB": 2, "status": "final" },
-        "401845003": { "scoreA": 4, "scoreB": 4, "status": "final" },
-        "401845004": { "scoreA": 3, "scoreB": 2, "status": "final" },
-        "401845005": { "scoreA": 2, "scoreB": 3, "status": "final" }
-      }
-    },
-    "knockout_test": {
-      "description": "Test knockout round scoring (2 points per correct pick)",
-      "overrides": {
-        "401845007": { "scoreA": 4, "scoreB": 2, "status": "final" },
-        "401845008": { "scoreA": 5, "scoreB": 3, "status": "final" }
-      }
-    },
-    "medal_test": {
-      "description": "Test medal round scoring (3 points per correct pick)",
-      "overrides": {
-        "401845011": { "scoreA": 5, "scoreB": 3, "status": "final" },
-        "401845012": { "scoreA": 3, "scoreB": 2, "status": "final" }
-      }
-    }
-  }
-}
+{                                                                                                                                                           
+    "enabled": true,                                                                                                                                          
+    "overrides": {                                                                                                                                            
+      "401845663": { "scoreA": 3, "scoreB": 2, "status": "final" },                                                                                           
+      "401845664": { "scoreA": 1, "scoreB": 4, "status": "final" }                                                                                            
+    }                                                                                                                                                         
+  }  
