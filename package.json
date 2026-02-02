@@ -4,9 +4,10 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "netlify dev",
-    "dev:vite": "vite",
+    "dev": "vite",
+    "dev:netlify": "netlify dev",
     "build": "vite build",
+    "build:gh-pages": "VITE_BASE_PATH=/olympics_pickem/ vite build",
     "preview": "vite preview",
     "lint": "eslint .",
     "test": "vitest",

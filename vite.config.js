@@ -2,8 +2,13 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
+// Base path for GitHub Pages deployment
+// Set VITE_BASE_PATH env var for custom base path (e.g., '/olympics_pickem/')
+const basePath = process.env.VITE_BASE_PATH || '/'
+
 export default defineConfig({
   plugins: [react()],
+  base: basePath,
   server: {
     proxy: {
       '/.netlify/functions': {

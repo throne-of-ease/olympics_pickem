@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Olympics Pick'em</title>
+    <script>
+      // Single Page App redirect for GitHub Pages
+      // Redirects 404s back to index.html with the path as a query parameter
+      // The main app then handles the routing
+      const path = window.location.pathname;
+      const query = window.location.search;
+      const hash = window.location.hash;
+
+      // Get base path from pathname (handles /repo-name/ prefix)
+      const segments = path.split('/').filter(Boolean);
+      const basePath = segments.length > 0 ? '/' + segments[0] + '/' : '/';
+      const route = '/' + segments.slice(1).join('/');
+
+      // Redirect to index with route info
+      window.location.replace(
+        basePath + '?redirect=' + encodeURIComponent(route + query + hash)
+      );
+    </script>
+  </head>
+  <body>
+    <p>Redirecting...</p>
+  </body>
+</html>

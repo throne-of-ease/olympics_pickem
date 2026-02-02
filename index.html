@@ -5,6 +5,19 @@
     <link rel="icon" type="image/svg+xml" href="/hockey-puck.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Olympic Hockey Pick'em</title>
+    <!-- GitHub Pages SPA redirect handler -->
+    <script>
+      (function() {
+        const params = new URLSearchParams(window.location.search);
+        const redirect = params.get('redirect');
+        if (redirect) {
+          params.delete('redirect');
+          const remaining = params.toString();
+          const newUrl = redirect + (remaining ? '?' + remaining : '');
+          window.history.replaceState(null, '', newUrl);
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
