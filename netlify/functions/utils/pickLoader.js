@@ -1,6 +1,7 @@
 import { readFileSync, readdirSync, existsSync } from 'fs';
 import { join } from 'path';
 import Papa from 'papaparse';
+import { createSupabaseClient, getAllProfiles, getAllPicks } from './supabase.js';
 
 // Get the base data directory (public/data)
 // Note: Don't use import.meta.url - it's undefined after esbuild bundling
@@ -108,7 +109,7 @@ function getResult(scoreA, scoreB) {
 }
 
 /**
- * Load all players and their picks
+ * Load all players and their picks from static files
  * @returns {Array} Array of player objects with picks attached
  */
 export function loadAllPlayerPicks() {
@@ -118,6 +119,68 @@ export function loadAllPlayerPicks() {
     const picks = loadPlayerPicks(player);
     return { ...player, picks };
   });
+}
+
+/**
+ * Load all players and their picks from Supabase
+ * Falls back to static files if Supabase is not available
+ * @returns {Promise<Array>} Array of player objects with picks attached
+ */
+export async function loadAllPlayerPicksFromSupabase() {
+  try {
+    const supabase = createSupabaseClient();
+    if (!supabase) {
+      console.warn('Supabase not configured, falling back to static files');
+      return loadAllPlayerPicks();
+    }
+
+    // Fetch profiles and picks from Supabase
+    const [profiles, picks] = await Promise.all([
+      getAllProfiles(supabase),
+      getAllPicks(supabase),
+    ]);
+
+    if (!profiles || profiles.length === 0) {
+      console.warn('No profiles found in Supabase, falling back to static files');
+      return loadAllPlayerPicks();
+    }
+
+    // Group picks by user_id
+    const picksByUser = {};
+    for (const pick of picks || []) {
+      const userId = pick.user_id;
+      if (!picksByUser[userId]) {
+        picksByUser[userId] = [];
+      }
+
+      // Transform pick to match expected format
+      const teamAScore = pick.team_a_score ?? 0;
+      const teamBScore = pick.team_b_score ?? 0;
+
+      picksByUser[userId].push({
+        playerId: userId,
+        gameId: pick.game_id,
+        teamAScore,
+        teamBScore,
+        predictedResult: getResult(teamAScore, teamBScore),
+      });
+    }
+
+    // Transform profiles to match expected format
+    const playersWithPicks = profiles.map((profile, index) => ({
+      id: profile.id,
+      name: profile.name || profile.email || 'Unknown Player',
+      displayOrder: index + 1,
+      picks: picksByUser[profile.id] || [],
+    }));
+
+    console.log(`Loaded ${playersWithPicks.length} players from Supabase with ${picks?.length || 0} total picks`);
+    return playersWithPicks;
+  } catch (error) {
+    console.error('Error loading from Supabase:', error.message);
+    console.warn('Falling back to static files');
+    return loadAllPlayerPicks();
+  }
 }
 
 /**
@@ -204,6 +267,7 @@ export default {
   loadPlayers,
   loadPlayerPicks,
   loadAllPlayerPicks,
+  loadAllPlayerPicksFromSupabase,
   loadMockGamesData,
   loadScoringConfig,
   loadGameOverrides,

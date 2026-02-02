@@ -1,10 +1,7 @@
 import { jsonResponse, errorResponse, corsHeaders } from './utils/response.js';
-import { loadAllPlayerPicks, loadMockGamesData, loadScoringConfig, loadGameOverrides } from './utils/pickLoader.js';
+import { loadAllPlayerPicksFromSupabase, loadScoringConfig, loadGameOverrides } from './utils/pickLoader.js';
 
 const ESPN_BASE_URL = 'https://site.api.espn.com/apis/site/v2/sports/hockey/olympics-mens-ice-hockey';
-
-// Use mock data if ESPN returns empty or USE_MOCK_DATA env var is set
-const USE_MOCK_DATA = process.env.USE_MOCK_DATA === 'true';
 
 // Load scoring config for points calculation
 const scoringConfig = loadScoringConfig();
@@ -62,8 +59,8 @@ export async function handler(event) {
     // Apply any game overrides for testing
     games = applyGameOverrides(games);
 
-    // Load all player picks from static CSVs
-    const playersWithPicks = loadAllPlayerPicks();
+    // Load all player picks from Supabase (falls back to static files if unavailable)
+    const playersWithPicks = await loadAllPlayerPicksFromSupabase();
 
     // Create a lookup of picks by game ID
     const picksByGame = {};
@@ -138,12 +135,6 @@ export async function handler(event) {
 }
 
 async function fetchGamesFromESPN() {
-  // Check if we should use mock data
-  if (USE_MOCK_DATA) {
-    console.log('Using mock data (USE_MOCK_DATA=true)');
-    return loadMockGames();
-  }
-
   try {
     const dateRange = '20260211-20260222';
     const url = `${ESPN_BASE_URL}/scoreboard?dates=${dateRange}`;
@@ -156,32 +147,16 @@ async function fetchGamesFromESPN() {
     clearTimeout(timeoutId);
 
     if (!response.ok) {
-      console.warn(`ESPN API error: ${response.status}, falling back to mock data`);
-      return loadMockGames();
+      console.warn(`ESPN API error: ${response.status}`);
+      return [];
     }
 
     const data = await response.json();
-    const games = parseScheduleResponse(data);
-
-    // Fall back to mock data if ESPN returns empty (Olympics not started yet)
-    if (games.length === 0) {
-      console.log('ESPN returned no games, using mock data');
-      return loadMockGames();
-    }
-
-    return games;
+    return parseScheduleResponse(data);
   } catch (error) {
-    console.warn('ESPN API failed, falling back to mock data:', error.message);
-    return loadMockGames();
+    console.warn('ESPN API failed:', error.message);
+    return [];
   }
-}
-
-function loadMockGames() {
-  const mockData = loadMockGamesData();
-  if (mockData) {
-    return parseScheduleResponse(mockData);
-  }
-  return [];
 }
 
 function parseScheduleResponse(data) {
