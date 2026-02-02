@@ -6,9 +6,8 @@
  * Returns: { games, leaderboard, tournamentProgress, timestamp }
  */
 
-import { jsonResponse, errorResponse, handleCors, corsHeaders } from './utils/response.js';
+import { jsonResponse, errorResponse, corsHeaders } from './utils/response.js';
 import { loadAllPlayerPicks, loadMockGamesData, loadScoringConfig, loadGameOverrides } from './utils/pickLoader.js';
-import { handleETagCaching } from './utils/etag.js';
 
 const ESPN_BASE_URL = 'https://site.api.espn.com/apis/site/v2/sports/hockey/olympics-mens-ice-hockey';
 const USE_MOCK_DATA = process.env.USE_MOCK_DATA === 'true';
@@ -16,12 +15,14 @@ const USE_MOCK_DATA = process.env.USE_MOCK_DATA === 'true';
 // Load scoring config once at module level
 const scoringConfig = loadScoringConfig();
 
-export default async function handler(req, res) {
+export async function handler(event) {
   // Handle CORS preflight
-  if (handleCors(req, res)) return;
+  if (event.httpMethod === 'OPTIONS') {
+    return { statusCode: 204, headers: corsHeaders(), body: '' };
+  }
 
-  if (req.method !== 'GET') {
-    return errorResponse(res, 'Method not allowed', 405);
+  if (event.httpMethod !== 'GET') {
+    return errorResponse('Method not allowed', 405);
   }
 
   try {
@@ -199,17 +200,20 @@ export default async function handler(req, res) {
       timestamp: now.toISOString(),
     };
 
-    // Handle ETag caching - returns 304 if client cache is valid
-    // Use shorter cache when games are in progress
+    // Add cache headers for better performance
     const maxAge = inProgressGames > 0 ? 30 : 60;
-    if (handleETagCaching(req, res, responseData, { maxAge })) {
-      return; // 304 Not Modified sent
-    }
-
-    return jsonResponse(res, responseData);
+    return {
+      statusCode: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': `public, max-age=${maxAge}`,
+        ...corsHeaders(),
+      },
+      body: JSON.stringify(responseData),
+    };
   } catch (error) {
     console.error('Error fetching tournament data:', error);
-    return errorResponse(res, error.message);
+    return errorResponse(error.message);
   }
 }
 
