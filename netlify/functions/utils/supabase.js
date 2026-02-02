@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
+const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
   console.warn(
@@ -29,6 +30,24 @@ export function createSupabaseClient(accessToken = null) {
   }
 
   return createClient(supabaseUrl, supabaseAnonKey, options);
+}
+
+/**
+ * Create a Supabase client with service role key (bypasses RLS)
+ * Use only on the backend for admin operations like aggregating all picks
+ */
+export function createServiceRoleClient() {
+  if (!supabaseUrl || !supabaseServiceRoleKey) {
+    console.warn('Service role key not configured, falling back to anon client');
+    return createSupabaseClient();
+  }
+
+  return createClient(supabaseUrl, supabaseServiceRoleKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
 }
 
 /**

@@ -1,7 +1,7 @@
 import { readFileSync, readdirSync, existsSync } from 'fs';
 import { join } from 'path';
 import Papa from 'papaparse';
-import { createSupabaseClient, getAllProfiles, getAllPicks } from './supabase.js';
+import { createServiceRoleClient, getAllProfiles, getAllPicks } from './supabase.js';
 
 // Get the base data directory (public/data)
 // Note: Don't use import.meta.url - it's undefined after esbuild bundling
@@ -128,7 +128,8 @@ export function loadAllPlayerPicks() {
  */
 export async function loadAllPlayerPicksFromSupabase() {
   try {
-    const supabase = createSupabaseClient();
+    // Use service role client to bypass RLS and read all picks for leaderboard
+    const supabase = createServiceRoleClient();
     if (!supabase) {
       console.warn('Supabase not configured, falling back to static files');
       return loadAllPlayerPicks();
