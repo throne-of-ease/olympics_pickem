@@ -70,9 +70,6 @@ function TeamDisplay({ team, score, isWinner, showScore }) {
   return (
     <div className={`${styles.team} ${isWinner ? styles.winner : ''}`}>
       <CountryFlag team={team} size="medium" className={styles.flag} />
-      {team.logo && (
-        <img src={team.logo} alt="" className={styles.logo} />
-      )}
       <span className={styles.teamName}>{team.name}</span>
       {showScore && (
         <span className={styles.score}>{score ?? '-'}</span>
