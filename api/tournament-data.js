@@ -6,8 +6,9 @@
  * Returns: { games, leaderboard, tournamentProgress, timestamp }
  */
 
-import { jsonResponse, errorResponse, handleCors } from './utils/response.js';
+import { jsonResponse, errorResponse, handleCors, corsHeaders } from './utils/response.js';
 import { loadAllPlayerPicks, loadMockGamesData, loadScoringConfig, loadGameOverrides } from './utils/pickLoader.js';
+import { handleETagCaching } from './utils/etag.js';
 
 const ESPN_BASE_URL = 'https://site.api.espn.com/apis/site/v2/sports/hockey/olympics-mens-ice-hockey';
 const USE_MOCK_DATA = process.env.USE_MOCK_DATA === 'true';
@@ -191,12 +192,21 @@ export default async function handler(req, res) {
       percentComplete: totalGames > 0 ? ((completedGames / totalGames) * 100).toFixed(1) : '0.0',
     };
 
-    return jsonResponse(res, {
+    const responseData = {
       games: enrichedGames,
       leaderboard,
       tournamentProgress,
       timestamp: now.toISOString(),
-    });
+    };
+
+    // Handle ETag caching - returns 304 if client cache is valid
+    // Use shorter cache when games are in progress
+    const maxAge = inProgressGames > 0 ? 30 : 60;
+    if (handleETagCaching(req, res, responseData, { maxAge })) {
+      return; // 304 Not Modified sent
+    }
+
+    return jsonResponse(res, responseData);
   } catch (error) {
     console.error('Error fetching tournament data:', error);
     return errorResponse(res, error.message);
