@@ -175,6 +175,7 @@ export function enrichGamesWithPicks(games, picks, profiles = [], scoringConfig 
       playerName: profile?.name || 'Unknown',
       teamAScore,
       teamBScore,
+      confidence: pick.confidence ?? 0.5,
       predictedResult: getResult(teamAScore, teamBScore),
     });
   }
@@ -218,6 +219,7 @@ export function enrichGamesWithPicks(games, picks, profiles = [], scoringConfig 
               predictedScoreA: p.teamAScore,
               predictedScoreB: p.teamBScore,
               predictedResult: p.predictedResult,
+              confidence: p.confidence,
               isCorrect,
               isProvisional,
               pointsEarned,

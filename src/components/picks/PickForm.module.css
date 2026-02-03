@@ -38,6 +38,61 @@
   gap: var(--spacing-md);
 }
 
+/* Quick Pick Winner Buttons */
+.quickPick {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.quickPickLabel {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.quickPickButtons {
+  display: flex;
+  gap: var(--spacing-sm);
+  justify-content: center;
+}
+
+.quickPickBtn {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 2px solid var(--border-color);
+  border-radius: var(--border-radius);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.quickPickBtn:hover {
+  border-color: var(--color-primary);
+  background: var(--color-gray-50);
+}
+
+.quickPickBtn.selected {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: white;
+}
+
+.quickPickBtn.tieBtn {
+  padding: var(--spacing-sm) var(--spacing-lg);
+}
+
+.quickPickBtn.tieBtn.selected {
+  background: var(--color-gray-600);
+  border-color: var(--color-gray-600);
+}
+
 .error {
   padding: var(--spacing-sm);
   background-color: rgba(220, 53, 69, 0.1);
@@ -175,5 +230,14 @@
 
   .submittedPick {
     background-color: var(--color-gray-800);
+  }
+
+  .quickPickBtn {
+    background: var(--color-gray-800);
+    border-color: var(--color-gray-600);
+  }
+
+  .quickPickBtn:hover {
+    background: var(--color-gray-700);
   }
 }

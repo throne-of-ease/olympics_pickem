@@ -334,6 +334,8 @@ function PickDisplay({ pick, game, variant }) {
   const isProvisional = pick.isProvisional;
   const predictedWinner = pick.predictedResult === 'win_a' ? game.team_a :
                           pick.predictedResult === 'win_b' ? game.team_b : null;
+  const confidence = pick.confidence ?? 0.5;
+  const confidencePercent = Math.round(confidence * 100);
 
   const baseClass = variant === 'compact' ? styles.pickCompact :
                     variant === 'card' ? styles.pickCard :
@@ -355,11 +357,14 @@ function PickDisplay({ pick, game, variant }) {
 
   if (variant === 'compact') {
     return (
-      <div className={`${baseClass} ${resultClass}`}>
+      <div className={`${baseClass} ${resultClass}`} title={`Confidence: ${confidencePercent}%`}>
         {predictedWinner ? (
           <span className={styles.pickAbbrev}>{getAbbrev(predictedWinner)}</span>
         ) : (
           <span className={styles.pickTie}>TIE</span>
+        )}
+        {confidence > 0.5 && (
+          <span className={styles.pickConfidence}>{confidencePercent}%</span>
         )}
       </div>
     );
@@ -371,6 +376,9 @@ function PickDisplay({ pick, game, variant }) {
         <span className={styles.cardPickScore}>
           {pick.predictedScoreA} - {pick.predictedScoreB}
         </span>
+        {confidence > 0.5 && (
+          <span className={styles.cardPickConfidence}>{confidencePercent}%</span>
+        )}
         {canShowPoints && (
           <span className={styles.cardPickPoints}>
             {pick.pointsEarned > 0 ? `+${pick.pointsEarned}` : '0'}
@@ -382,11 +390,14 @@ function PickDisplay({ pick, game, variant }) {
 
   // timeline
   return (
-    <div className={`${baseClass} ${resultClass}`}>
+    <div className={`${baseClass} ${resultClass}`} title={`Confidence: ${confidencePercent}%`}>
       {predictedWinner?.logo && (
         <img src={predictedWinner.logo} alt="" className={styles.timelinePickLogo} />
       )}
       {!predictedWinner && <span className={styles.timelineTie}>T</span>}
+      {confidence > 0.5 && (
+        <span className={styles.timelineConfidence}>{confidencePercent}%</span>
+      )}
       {canShowPoints && pick.pointsEarned > 0 && (
         <span className={styles.timelinePoints}>+{pick.pointsEarned}</span>
       )}
