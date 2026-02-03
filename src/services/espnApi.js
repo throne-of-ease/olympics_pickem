@@ -1,6 +1,57 @@
 const BASE_URL = 'https://site.api.espn.com/apis/site/v2/sports/hockey/olympics-mens-ice-hockey';
 
 /**
+ * Load game overrides from JSON file for local testing
+ * @returns {Promise<Object>} Game overrides config
+ */
+async function loadGameOverrides() {
+  try {
+    const response = await fetch('/data/game-overrides.json');
+    if (!response.ok) {
+      return { enabled: false, overrides: {} };
+    }
+    const data = await response.json();
+    if (data.enabled) {
+      console.log('Loaded game overrides:', Object.keys(data.overrides || {}).length, 'games');
+    }
+    return data;
+  } catch (error) {
+    console.warn('Failed to load game overrides:', error.message);
+    return { enabled: false, overrides: {} };
+  }
+}
+
+/**
+ * Apply game overrides if enabled (for local testing)
+ * @param {Array} games - Array of game objects
+ * @param {Object} overridesConfig - Overrides configuration
+ * @returns {Array} Games with overrides applied
+ */
+function applyGameOverrides(games, overridesConfig) {
+  if (!overridesConfig.enabled || !overridesConfig.overrides) {
+    return games;
+  }
+
+  console.log('Applying game overrides for testing');
+
+  return games.map(game => {
+    const override = overridesConfig.overrides[game.espnEventId];
+    if (!override) return game;
+
+    console.log(`Override applied to game ${game.espnEventId}: ${override.scoreA}-${override.scoreB} (${override.status})`);
+
+    return {
+      ...game,
+      scores: {
+        teamA: override.scoreA,
+        teamB: override.scoreB,
+      },
+      status: { state: override.status || 'final' },
+    };
+  });
+}
+
+/**
  * Fetch game schedule from ESPN scoreboard API
  * @param {string} dateRange - Date range in format 'YYYYMMDD-YYYYMMDD'
  * @returns {Promise<Array>} Array of game objects
@@ -15,7 +66,13 @@ export async function fetchSchedule(dateRange = '20260211-20260222') {
     }
 
     const data = await response.json();
-    return parseScheduleResponse(data);
+    let games = parseScheduleResponse(data);
+
+    // Apply any game overrides for local testing
+    const overrides = await loadGameOverrides();
+    games = applyGameOverrides(games, overrides);
+
+    return games;
   } catch (error) {
     console.error('Failed to fetch schedule:', error);
     throw error;

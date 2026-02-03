@@ -138,10 +138,14 @@ export function calculateLeaderboard(games, picks, profiles, scoringConfig = DEF
  * Enrich games with pick information for display
  * @param {Array} games - Array of game objects from ESPN
  * @param {Array} picks - Array of pick objects from Supabase (getAllVisible)
+ * @param {Array} profiles - Array of profile objects from Supabase
  * @param {Object} scoringConfig - Optional scoring configuration
  * @returns {Array} Games enriched with pick information
  */
-export function enrichGamesWithPicks(games, picks, scoringConfig = DEFAULT_SCORING_CONFIG) {
+export function enrichGamesWithPicks(games, picks, profiles = [], scoringConfig = DEFAULT_SCORING_CONFIG) {
+  // Build profile lookup by user ID
+  const profileMap = new Map(profiles.map(p => [p.id, p]));
+
   // Create a lookup of picks by game ID
   const picksByGame = {};
   for (const pick of picks) {
@@ -152,10 +156,11 @@ export function enrichGamesWithPicks(games, picks, scoringConfig = DEFAULT_SCORI
 
     const teamAScore = pick.team_a_score ?? 0;
     const teamBScore = pick.team_b_score ?? 0;
+    const profile = profileMap.get(pick.user_id);
 
     picksByGame[gameId].push({
       playerId: pick.user_id,
-      playerName: pick.profiles?.name || 'Unknown',
+      playerName: profile?.name || 'Unknown',
       teamAScore,
       teamBScore,
       predictedResult: getResult(teamAScore, teamBScore),

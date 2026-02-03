@@ -1,7 +1,7 @@
-{                                                                                                                                                           
-    "enabled": true,                                                                                                                                          
-    "overrides": {                                                                                                                                            
-      "401845663": { "scoreA": 3, "scoreB": 2, "status": "final" },                                                                                           
-      "401845664": { "scoreA": 1, "scoreB": 4, "status": "final" }                                                                                            
-    }                                                                                                                                                         
-  }  
+{
+  "enabled": true,
+  "overrides": {
+    "401845663": { "scoreA": 3, "scoreB": 2, "status": "final" },
+    "401845664": { "scoreA": 1, "scoreB": 4, "status": "in_progress" }
+  }
+}  

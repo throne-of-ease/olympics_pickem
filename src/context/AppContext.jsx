@@ -106,7 +106,7 @@ export function AppProvider({ children }) {
       const calculatedLeaderboard = calculateLeaderboard(espnGames, visiblePicks, allProfiles);
 
       // Enrich games with pick information
-      const enrichedGames = enrichGamesWithPicks(espnGames, visiblePicks);
+      const enrichedGames = enrichGamesWithPicks(espnGames, visiblePicks, allProfiles);
 
       // Calculate tournament progress
       const totalGames = espnGames.length;

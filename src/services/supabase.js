@@ -229,10 +229,7 @@ export const picks = {
 
     const { data, error } = await supabase
       .from('picks')
-      .select(`
-        *,
-        profiles (name)
-      `)
+      .select('*')
       .eq('game_id', gameId);
 
     if (error) throw error;
@@ -289,10 +286,7 @@ export const picks = {
 
     const { data, error } = await supabase
       .from('picks')
-      .select(`
-        *,
-        profiles (name)
-      `);
+      .select('*');
 
     if (error) throw error;
     return data;
