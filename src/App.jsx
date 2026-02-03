@@ -6,7 +6,6 @@ import { ProtectedRoute } from './components/auth';
 import {
   GamesPage,
   LeaderboardPage,
-  StandingsPage,
   PicksOverviewPage,
   RulesPage,
   LoginPage,
@@ -34,7 +33,6 @@ function App() {
               <Route index element={<PicksOverviewPage />} />
               <Route path="games" element={<GamesPage />} />
               <Route path="leaderboard" element={<LeaderboardPage />} />
-              <Route path="standings" element={<StandingsPage />} />
               <Route path="rules" element={<RulesPage />} />
 
               {/* Protected routes */}

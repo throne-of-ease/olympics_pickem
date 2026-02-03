@@ -297,17 +297,69 @@ export async function createInvite(supabase, email, invitedBy) {
  * Delete an invite (admin only)
  * @param {object} supabase - Supabase client
  * @param {string} inviteId - Invite ID
+ * @param {boolean} allowUsed - Whether to allow deleting used invites
  */
-export async function deleteInvite(supabase, inviteId) {
+export async function deleteInvite(supabase, inviteId, allowUsed = false) {
   if (!supabase) throw new Error('Supabase not configured');
 
-  const { error } = await supabase
+  let query = supabase
     .from('invites')
     .delete()
-    .eq('id', inviteId)
-    .eq('used', false);
+    .eq('id', inviteId);
+
+  // Only restrict to unused invites if allowUsed is false
+  if (!allowUsed) {
+    query = query.eq('used', false);
+  }
+
+  const { error } = await query;
 
   if (error) throw error;
+}
+
+/**
+ * Delete a user and their data (admin only)
+ * Requires service role to delete from auth.users
+ * @param {string} userId - User ID to delete
+ */
+export async function deleteUser(userId) {
+  const serviceClient = createServiceRoleClient();
+  if (!serviceClient) throw new Error('Service role not configured');
+
+  // First, delete user's picks
+  const { error: picksError } = await serviceClient
+    .from('picks')
+    .delete()
+    .eq('user_id', userId);
+
+  if (picksError) {
+    console.error('Error deleting user picks:', picksError);
+  }
+
+  // Delete user's profile
+  const { error: profileError } = await serviceClient
+    .from('profiles')
+    .delete()
+    .eq('id', userId);
+
+  if (profileError) {
+    console.error('Error deleting user profile:', profileError);
+  }
+
+  // Update any invites used by this user
+  const { error: inviteError } = await serviceClient
+    .from('invites')
+    .update({ used_by: null })
+    .eq('used_by', userId);
+
+  if (inviteError) {
+    console.error('Error updating invites:', inviteError);
+  }
+
+  // Finally, delete from auth.users
+  const { error: authError } = await serviceClient.auth.admin.deleteUser(userId);
+
+  if (authError) throw authError;
 }
 
 export default createSupabaseClient;

@@ -64,7 +64,7 @@ export function AdminPage() {
     }
   };
 
-  // Delete invite
+  // Delete invite (unused)
   const handleDeleteInvite = async (inviteId) => {
     if (!window.confirm('Delete this invite?')) return;
 
@@ -73,6 +73,37 @@ export function AdminPage() {
       setInvites((prev) => prev.filter((i) => i.id !== inviteId));
     } catch (err) {
       setError(err.message || 'Failed to delete invite');
+    }
+  };
+
+  // Delete used invite
+  const handleDeleteUsedInvite = async (inviteId) => {
+    if (!window.confirm('Delete this used invite from the log?')) return;
+
+    try {
+      await invitesApi.deleteUsed(inviteId);
+      setInvites((prev) => prev.filter((i) => i.id !== inviteId));
+      setSuccess('Invite log entry deleted');
+    } catch (err) {
+      setError(err.message || 'Failed to delete invite');
+    }
+  };
+
+  // Delete user
+  const handleDeleteUser = async (userId, userName) => {
+    if (userId === user?.id) {
+      setError('You cannot delete your own account');
+      return;
+    }
+
+    if (!window.confirm(`Delete user "${userName}"? This will remove all their picks and data permanently.`)) return;
+
+    try {
+      await profiles.delete(userId);
+      setUsers((prev) => prev.filter((u) => u.id !== userId));
+      setSuccess(`User "${userName}" deleted`);
+    } catch (err) {
+      setError(err.message || 'Failed to delete user');
     }
   };
 
@@ -200,6 +231,7 @@ export function AdminPage() {
               <span>Email</span>
               <span>Code</span>
               <span>Used At</span>
+              <span>Actions</span>
             </div>
             {invites
               .filter((i) => i.used)
@@ -211,6 +243,15 @@ export function AdminPage() {
                     {invite.used_at
                       ? new Date(invite.used_at).toLocaleDateString()
                       : '-'}
+                  </span>
+                  <span className={styles.actions}>
+                    <Button
+                      variant="ghost"
+                      size="small"
+                      onClick={() => handleDeleteUsedInvite(invite.id)}
+                    >
+                      Remove
+                    </Button>
                   </span>
                 </div>
               ))}
@@ -229,6 +270,7 @@ export function AdminPage() {
               <span>Name</span>
               <span>Role</span>
               <span>Joined</span>
+              <span>Actions</span>
             </div>
             {users.map((u) => (
               <div key={u.id} className={styles.tableRow}>
@@ -245,6 +287,17 @@ export function AdminPage() {
                 </span>
                 <span className={styles.date}>
                   {new Date(u.created_at).toLocaleDateString()}
+                </span>
+                <span className={styles.actions}>
+                  {u.id !== user?.id && (
+                    <Button
+                      variant="ghost"
+                      size="small"
+                      onClick={() => handleDeleteUser(u.id, u.name)}
+                    >
+                      Delete
+                    </Button>
+                  )}
                 </span>
               </div>
             ))}

@@ -199,6 +199,28 @@ export const profiles = {
     if (error) throw error;
     return data;
   },
+
+  /**
+   * Delete a user via API (admin only)
+   */
+  async delete(userId) {
+    if (!supabase) throw new Error('Supabase not configured');
+
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) throw new Error('Not authenticated');
+
+    const response = await fetch(`/.netlify/functions/admin-users?id=${userId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${session.access_token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const data = await response.json();
+      throw new Error(data.error || 'Failed to delete user');
+    }
+  },
 };
 
 /**
@@ -355,6 +377,28 @@ export const invites = {
       .eq('used', false);
 
     if (error) throw error;
+  },
+
+  /**
+   * Delete a used invite via API (admin only)
+   */
+  async deleteUsed(inviteId) {
+    if (!supabase) throw new Error('Supabase not configured');
+
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) throw new Error('Not authenticated');
+
+    const response = await fetch(`/.netlify/functions/invites?id=${inviteId}&allowUsed=true`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${session.access_token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const data = await response.json();
+      throw new Error(data.error || 'Failed to delete invite');
+    }
   },
 };
 

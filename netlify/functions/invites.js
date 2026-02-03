@@ -101,19 +101,19 @@ async function handleCreateInvite(event, supabase, user) {
 }
 
 /**
- * DELETE /api/invites - Delete an unused invite (admin only)
- * Query params: id
+ * DELETE /api/invites - Delete an invite (admin only)
+ * Query params: id, allowUsed (optional, to delete used invites)
  */
 async function handleDeleteInvite(event, supabase) {
   const params = event.queryStringParameters || {};
-  const { id } = params;
+  const { id, allowUsed } = params;
 
   if (!id) {
     return errorResponse('id is required', 400);
   }
 
   try {
-    await deleteInvite(supabase, id);
+    await deleteInvite(supabase, id, allowUsed === 'true');
 
     return jsonResponse({
       success: true,
