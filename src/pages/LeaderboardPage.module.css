@@ -13,6 +13,25 @@
   margin: 0;
 }
 
+.controls {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: 0.9rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.toggle input[type="checkbox"] {
+  cursor: pointer;
+}
+
 .leaderboard {
   margin-top: var(--spacing-lg);
 }

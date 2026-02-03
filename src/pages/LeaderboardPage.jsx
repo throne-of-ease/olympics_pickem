@@ -2,10 +2,12 @@ import { useLeaderboard } from '../hooks/useLeaderboard';
 import { Leaderboard, TournamentProgress } from '../components/leaderboard';
 import { Loading, Button } from '../components/common';
 import { usePolling } from '../hooks/usePolling';
+import { useApp } from '../context/AppContext';
 import styles from './LeaderboardPage.module.css';
 
 export function LeaderboardPage() {
   const { leaderboard, tournamentProgress, loading, error, refresh } = useLeaderboard();
+  const { includeLiveGames, toggleIncludeLiveGames } = useApp();
 
   // Smart polling: adjusts interval based on tournament state
   // Also pauses when browser tab is hidden
@@ -33,9 +35,19 @@ export function LeaderboardPage() {
     <div className={styles.page}>
       <div className={styles.header}>
         <h1>Leaderboard</h1>
-        <Button variant="ghost" size="small" onClick={refresh} disabled={loading}>
-          {loading ? 'Refreshing...' : 'Refresh'}
-        </Button>
+        <div className={styles.controls}>
+          <label className={styles.toggle}>
+            <input
+              type="checkbox"
+              checked={includeLiveGames}
+              onChange={(e) => toggleIncludeLiveGames(e.target.checked)}
+            />
+            <span>Include live games</span>
+          </label>
+          <Button variant="ghost" size="small" onClick={refresh} disabled={loading}>
+            {loading ? 'Refreshing...' : 'Refresh'}
+          </Button>
+        </div>
       </div>
 
       <TournamentProgress progress={tournamentProgress} />
