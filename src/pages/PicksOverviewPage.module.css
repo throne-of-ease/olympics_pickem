@@ -261,18 +261,23 @@
 .pickCell {
   vertical-align: middle;
   padding: 4px 2px !important;
+  overflow: hidden;
 }
 
 .pickCompact {
-  display: inline-flex;
+  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
-  padding: 4px 6px;
+  gap: 1px;
+  padding: 3px 4px;
   border-radius: 4px;
-  min-width: 36px;
+  min-width: 42px;
+  max-width: 100%;
   border: 2px solid transparent;
   transition: all var(--transition-fast);
+  font-size: 10px;
+  box-sizing: border-box;
 }
 
 .pickCompact.pending {
@@ -300,10 +305,35 @@
   border: 2px dashed rgba(220, 53, 69, 0.4);
 }
 
+.pickContent {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 2px;
+  line-height: 1;
+}
+
 .pickAbbrev {
   font-weight: 700;
-  font-size: 11px;
-  letter-spacing: 0.5px;
+  font-size: 10px;
+  letter-spacing: 0.3px;
+}
+
+.pickConfidence {
+  font-size: 8px;
+  font-weight: 500;
+  color: var(--text-muted);
+  opacity: 0.8;
+}
+
+.pickPoints {
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .pickCompact.correct .pickAbbrev {
@@ -330,11 +360,6 @@
   width: 18px;
   height: 18px;
   object-fit: contain;
-}
-
-.pickPoints {
-  font-weight: 700;
-  font-size: 11px;
 }
 
 .correct .pickPoints {
@@ -561,9 +586,14 @@
   border: 1px dashed rgba(220, 53, 69, 0.3);
 }
 
-.cardPickScore {
-  font-weight: 600;
+.cardPickTeam {
+  font-weight: 700;
   font-size: var(--font-size-sm);
+}
+
+.cardPickConfidence {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
 }
 
 .cardPickPoints {
@@ -571,6 +601,11 @@
   font-weight: 700;
   padding: 2px 6px;
   border-radius: 8px;
+}
+
+.cardPickPoints.negative {
+  background: var(--color-error);
+  color: white;
 }
 
 .pickCard.correct .cardPickPoints {
@@ -802,16 +837,34 @@
   border: 2px dashed rgba(220, 53, 69, 0.4);
 }
 
+.timelinePickContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+
 .timelinePickLogo {
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   object-fit: contain;
+}
+
+.timelinePickAbbrev {
+  font-weight: 700;
+  font-size: 10px;
 }
 
 .timelineTie {
   font-weight: 700;
   font-size: var(--font-size-sm);
   color: var(--text-secondary);
+}
+
+.timelineConfidence {
+  font-size: 8px;
+  font-weight: 500;
+  color: var(--text-muted);
 }
 
 .timelinePoints {
@@ -824,6 +877,14 @@
   color: white;
   padding: 1px 4px;
   border-radius: 6px;
+}
+
+.timelinePoints.negative {
+  background: var(--color-error);
+}
+
+.pickPoints.negative {
+  color: var(--color-error);
 }
 
 .timelineNoPick,

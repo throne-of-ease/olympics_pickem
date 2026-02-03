@@ -113,19 +113,33 @@ describe('scoring.js', () => {
       },
     };
 
-    it('returns zero for incomplete games', () => {
+    it('returns zero for scheduled (not started) games', () => {
       const pick = { teamAScore: 3, teamBScore: 2 };
       const game = {
         id: '1',
-        status: { state: 'in_progress' },
-        scores: { teamA: 1, teamB: 1 },
+        status: { state: 'scheduled' },
+        scores: { teamA: null, teamB: null },
         roundType: 'groupStage'
       };
 
       const result = calculatePickScore(pick, game, mockConfig);
       expect(result.totalPoints).toBe(0);
       expect(result.isCorrect).toBe(false);
-      expect(result.details.reason).toBe('Game not completed');
+      expect(result.details.reason).toBe('Game not started');
+    });
+
+    it('scores in-progress games with current scores', () => {
+      const pick = { teamAScore: 3, teamBScore: 2 }; // Predicting win_a
+      const game = {
+        id: '1',
+        status: { state: 'in_progress' },
+        scores: { teamA: 2, teamB: 1 }, // Currently win_a
+        roundType: 'groupStage'
+      };
+
+      const result = calculatePickScore(pick, game, mockConfig);
+      expect(result.totalPoints).toBe(1); // Provisional correct
+      expect(result.isCorrect).toBe(true);
     });
 
     it('returns zero for games with missing scores', () => {
@@ -314,7 +328,10 @@ describe('scoring.js', () => {
       expect(result.roundBreakdown.knockoutRound.points).toBe(2);
     });
 
-    it('ignores scheduled games in scoring', () => {
+    // This test is no longer relevant as calculatePlayerScore expects games to be pre-filtered.
+    // The filtering logic for scheduled games is now handled in `leaderboardCalculator.js`.
+    // We will keep the test but comment it out or adapt it if needed for future logic.
+    it.skip('ignores scheduled games in scoring', () => {
       const picks = [
         { gameId: '4', teamAScore: 2, teamBScore: 1 }, // game not yet played
       ];

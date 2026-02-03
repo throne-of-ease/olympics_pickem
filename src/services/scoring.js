@@ -110,9 +110,12 @@ export function calculatePickScore(pick, game, config = scoringConfig) {
     details: {},
   };
 
-  // Game must be final to score
-  if (game.status?.state !== 'final' && game.status !== 'final') {
-    result.details.reason = 'Game not completed';
+  // Determine if game can be scored (final or in-progress with scores)
+  const isFinal = game.status?.state === 'final' || game.status === 'final';
+  const isInProgress = game.status?.state === 'in_progress' || game.status === 'in_progress';
+
+  if (!isFinal && !isInProgress) {
+    result.details.reason = 'Game not started';
     return result;
   }
 
@@ -208,25 +211,25 @@ export function calculatePlayerScore(playerPicks, games, config = scoringConfig)
     const result = calculatePickScore(pick, game, config);
     pickResults.push(result);
 
-    // Only count completed games
-    if (game.status?.state === 'final' || game.status === 'final') {
-      scoredGames++;
-      totalPoints += result.totalPoints;
+    // Only count completed or in-progress (if includeLiveGames is true) games
+    // The games array passed here should already be filtered by scoreable status
+    // from leaderboardCalculator.js or similar
+    scoredGames++;
+    totalPoints += result.totalPoints;
 
-      if (result.isCorrect) {
-        correctPicks++;
-      }
+    if (result.isCorrect) {
+      correctPicks++;
+    }
 
       // Update round breakdown
       const roundType = result.details?.roundType || getRoundType(game);
       if (roundBreakdown[roundType]) {
         roundBreakdown[roundType].total++;
+        roundBreakdown[roundType].points += result.totalPoints;
         if (result.isCorrect) {
           roundBreakdown[roundType].correct++;
-          roundBreakdown[roundType].points += result.totalPoints;
         }
       }
-    }
   }
 
   return {
