@@ -15,7 +15,7 @@ const DESIGN_OPTIONS = [
 export function PicksOverviewPage() {
   const { games, loading: gamesLoading, error: gamesError, refresh: refreshGames } = useGames();
   const { leaderboard, loading: lbLoading, error: lbError, refresh: refreshLb } = useLeaderboard();
-  const { tournamentProgress } = useApp();
+  const { tournamentProgress, includeLiveGames, toggleIncludeLiveGames } = useApp();
   const [design, setDesign] = useState('compact');
 
   const loading = gamesLoading || lbLoading;
@@ -78,6 +78,14 @@ export function PicksOverviewPage() {
               </button>
             ))}
           </div>
+          <label className={styles.toggle}>
+            <input
+              type="checkbox"
+              checked={includeLiveGames}
+              onChange={(e) => toggleIncludeLiveGames(e.target.checked)}
+            />
+            <span>Include live games</span>
+          </label>
           <Button variant="ghost" size="small" onClick={refresh} disabled={loading}>
             {loading ? 'Refreshing...' : 'Refresh'}
           </Button>
@@ -321,7 +329,9 @@ function TeamBadge({ team, isWinner, showName = false, showFlag = false }) {
 
 function PickDisplay({ pick, game, variant }) {
   const isFinal = game.status === 'final';
+  const isLive = game.status === 'in_progress';
   const isCorrect = pick.isCorrect;
+  const isProvisional = pick.isProvisional;
   const predictedWinner = pick.predictedResult === 'win_a' ? game.team_a :
                           pick.predictedResult === 'win_b' ? game.team_b : null;
 
@@ -329,7 +339,17 @@ function PickDisplay({ pick, game, variant }) {
                     variant === 'card' ? styles.pickCard :
                     styles.pickTimeline;
 
-  const resultClass = isFinal ? (isCorrect ? styles.correct : styles.incorrect) : styles.pending;
+  // Determine result class: provisional (live + scored), final, or pending
+  let resultClass;
+  if (isProvisional) {
+    resultClass = isCorrect ? styles.provisionalCorrect : styles.provisionalIncorrect;
+  } else if (isFinal) {
+    resultClass = isCorrect ? styles.correct : styles.incorrect;
+  } else {
+    resultClass = styles.pending;
+  }
+
+  const canShowPoints = isFinal || isProvisional;
 
   const getAbbrev = (team) => team?.abbreviation || team?.name?.slice(0, 3).toUpperCase() || '?';
 
@@ -351,7 +371,7 @@ function PickDisplay({ pick, game, variant }) {
         <span className={styles.cardPickScore}>
           {pick.predictedScoreA} - {pick.predictedScoreB}
         </span>
-        {isFinal && (
+        {canShowPoints && (
           <span className={styles.cardPickPoints}>
             {pick.pointsEarned > 0 ? `+${pick.pointsEarned}` : '0'}
           </span>
@@ -367,7 +387,7 @@ function PickDisplay({ pick, game, variant }) {
         <img src={predictedWinner.logo} alt="" className={styles.timelinePickLogo} />
       )}
       {!predictedWinner && <span className={styles.timelineTie}>T</span>}
-      {isFinal && pick.pointsEarned > 0 && (
+      {canShowPoints && pick.pointsEarned > 0 && (
         <span className={styles.timelinePoints}>+{pick.pointsEarned}</span>
       )}
     </div>

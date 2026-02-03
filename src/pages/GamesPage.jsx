@@ -8,7 +8,7 @@ import styles from './GamesPage.module.css';
 
 export function GamesPage() {
   const { games, categorizedGames, gamesByRound, loading, error, refresh } = useGames();
-  const { tournamentProgress } = useApp();
+  const { tournamentProgress, includeLiveGames, toggleIncludeLiveGames } = useApp();
   const [filter, setFilter] = useState('all');
   const [round, setRound] = useState('all');
 
@@ -67,9 +67,19 @@ export function GamesPage() {
     <div className={styles.page}>
       <div className={styles.header}>
         <h1>Games Schedule</h1>
-        <Button variant="ghost" size="small" onClick={refresh} disabled={loading}>
-          {loading ? 'Refreshing...' : 'Refresh'}
-        </Button>
+        <div className={styles.controls}>
+          <label className={styles.toggle}>
+            <input
+              type="checkbox"
+              checked={includeLiveGames}
+              onChange={(e) => toggleIncludeLiveGames(e.target.checked)}
+            />
+            <span>Include live games</span>
+          </label>
+          <Button variant="ghost" size="small" onClick={refresh} disabled={loading}>
+            {loading ? 'Refreshing...' : 'Refresh'}
+          </Button>
+        </div>
       </div>
 
       <GameFilters

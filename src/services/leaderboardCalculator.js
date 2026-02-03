@@ -25,9 +25,12 @@ function getResult(scoreA, scoreB) {
  * @param {Array} picks - Array of pick objects from Supabase (getAllVisible)
  * @param {Array} profiles - Array of profile objects from Supabase
  * @param {Object} scoringConfig - Optional scoring configuration
+ * @param {Object} options - Optional calculation options
+ * @param {boolean} options.includeLiveGames - Include in-progress games in scoring (default: false)
  * @returns {Array} Sorted leaderboard with player rankings
  */
-export function calculateLeaderboard(games, picks, profiles, scoringConfig = DEFAULT_SCORING_CONFIG) {
+export function calculateLeaderboard(games, picks, profiles, scoringConfig = DEFAULT_SCORING_CONFIG, options = {}) {
+  const { includeLiveGames = false } = options;
   // Build game lookup by ESPN event ID
   const gameMap = new Map(games.map(g => [g.espnEventId || g.id, g]));
 
@@ -65,7 +68,13 @@ export function calculateLeaderboard(games, picks, profiles, scoringConfig = DEF
 
     for (const pick of userPicks) {
       const game = gameMap.get(pick.gameId);
-      if (!game || game.status?.state !== 'final') continue;
+
+      // Skip games that aren't scoreable yet
+      const isFinal = game?.status?.state === 'final';
+      const isInProgress = game?.status?.state === 'in_progress';
+      const canScore = isFinal || (includeLiveGames && isInProgress);
+
+      if (!game || !canScore) continue;
 
       scoredGames++;
       const roundType = game.roundType || game.round_type || 'groupStage';
@@ -140,9 +149,12 @@ export function calculateLeaderboard(games, picks, profiles, scoringConfig = DEF
  * @param {Array} picks - Array of pick objects from Supabase (getAllVisible)
  * @param {Array} profiles - Array of profile objects from Supabase
  * @param {Object} scoringConfig - Optional scoring configuration
+ * @param {Object} options - Optional enrichment options
+ * @param {boolean} options.includeLiveGames - Include in-progress games in scoring (default: false)
  * @returns {Array} Games enriched with pick information
  */
-export function enrichGamesWithPicks(games, picks, profiles = [], scoringConfig = DEFAULT_SCORING_CONFIG) {
+export function enrichGamesWithPicks(games, picks, profiles = [], scoringConfig = DEFAULT_SCORING_CONFIG, options = {}) {
+  const { includeLiveGames = false } = options;
   // Build profile lookup by user ID
   const profileMap = new Map(profiles.map(p => [p.id, p]));
 
@@ -196,7 +208,9 @@ export function enrichGamesWithPicks(games, picks, profiles = [], scoringConfig 
       team_b: game.teamB,
       picks: gameStarted
         ? gamePicks.map(p => {
-            const isCorrect = isFinal && actualResult && p.predictedResult === actualResult;
+            const canScore = isFinal || (includeLiveGames && isInProgress);
+            const isCorrect = canScore && actualResult && p.predictedResult === actualResult;
+            const isProvisional = includeLiveGames && isInProgress && !isFinal;
             const pointsEarned = isCorrect ? basePoints : 0;
             return {
               playerId: p.playerId,
@@ -205,6 +219,7 @@ export function enrichGamesWithPicks(games, picks, profiles = [], scoringConfig 
               predictedScoreB: p.teamBScore,
               predictedResult: p.predictedResult,
               isCorrect,
+              isProvisional,
               pointsEarned,
             };
           })

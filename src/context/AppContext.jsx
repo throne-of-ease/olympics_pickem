@@ -8,6 +8,7 @@ const AppContext = createContext(null);
 // Cache configuration
 const CACHE_KEY = 'olympics-pickem-cache';
 const CACHE_TTL = 60000; // 1 minute cache TTL
+const SETTINGS_KEY = 'olympics-pickem-settings';
 
 /**
  * Get cached data from localStorage if still valid
@@ -53,6 +54,30 @@ function clearCache() {
   }
 }
 
+/**
+ * Get user settings from localStorage
+ */
+function getSettings() {
+  try {
+    const settings = localStorage.getItem(SETTINGS_KEY);
+    return settings ? JSON.parse(settings) : {};
+  } catch (error) {
+    console.warn('Failed to read settings:', error);
+    return {};
+  }
+}
+
+/**
+ * Save user settings to localStorage
+ */
+function saveSettings(settings) {
+  try {
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+  } catch (error) {
+    console.warn('Failed to save settings:', error);
+  }
+}
+
 export function AppProvider({ children }) {
   const [games, setGames] = useState([]);
   const [leaderboard, setLeaderboard] = useState([]);
@@ -61,6 +86,10 @@ export function AppProvider({ children }) {
   const [loading, setLoading] = useState({ games: false, leaderboard: false });
   const [error, setError] = useState({ games: null, leaderboard: null });
   const [lastUpdated, setLastUpdated] = useState(null);
+  const [includeLiveGames, setIncludeLiveGames] = useState(() => {
+    const settings = getSettings();
+    return settings.includeLiveGames ?? false;
+  });
 
   /**
    * Fetch all tournament data client-side
@@ -103,10 +132,22 @@ export function AppProvider({ children }) {
       });
 
       // Calculate leaderboard client-side
-      const calculatedLeaderboard = calculateLeaderboard(espnGames, visiblePicks, allProfiles);
+      const calculatedLeaderboard = calculateLeaderboard(
+        espnGames,
+        visiblePicks,
+        allProfiles,
+        undefined,
+        { includeLiveGames }
+      );
 
       // Enrich games with pick information
-      const enrichedGames = enrichGamesWithPicks(espnGames, visiblePicks, allProfiles);
+      const enrichedGames = enrichGamesWithPicks(
+        espnGames,
+        visiblePicks,
+        allProfiles,
+        undefined,
+        { includeLiveGames }
+      );
 
       // Calculate tournament progress
       const totalGames = espnGames.length;
@@ -188,10 +229,28 @@ export function AppProvider({ children }) {
     await refreshAll(true);
   }, [refreshAll]);
 
+  /**
+   * Toggle live games inclusion in scoring
+   */
+  const toggleIncludeLiveGames = useCallback((value) => {
+    const newValue = value ?? !includeLiveGames;
+    setIncludeLiveGames(newValue);
+    saveSettings({ ...getSettings(), includeLiveGames: newValue });
+    // Trigger recalculation without refetching data
+    clearCache();
+  }, [includeLiveGames]);
+
   // Initial fetch
   useEffect(() => {
     fetchTournamentData();
   }, [fetchTournamentData]);
+
+  // Recalculate when includeLiveGames changes
+  useEffect(() => {
+    if (games.length > 0) {
+      fetchTournamentData(true);
+    }
+  }, [includeLiveGames]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const value = {
     games,
@@ -201,11 +260,13 @@ export function AppProvider({ children }) {
     loading,
     error,
     lastUpdated,
+    includeLiveGames,
     fetchGames,
     fetchLeaderboard,
     refreshAll,
     forceRefresh,
     clearCache,
+    toggleIncludeLiveGames,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

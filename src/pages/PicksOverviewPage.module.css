@@ -56,6 +56,19 @@
   box-shadow: var(--shadow-sm);
 }
 
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: 0.9rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.toggle input[type="checkbox"] {
+  cursor: pointer;
+}
+
 .error {
   text-align: center;
   padding: var(--spacing-2xl);
@@ -277,6 +290,16 @@
   border-color: rgba(220, 53, 69, 0.4);
 }
 
+.pickCompact.provisionalCorrect {
+  background: rgba(40, 167, 69, 0.15);
+  border: 2px dashed rgba(40, 167, 69, 0.6);
+}
+
+.pickCompact.provisionalIncorrect {
+  background: rgba(220, 53, 69, 0.05);
+  border: 2px dashed rgba(220, 53, 69, 0.4);
+}
+
 .pickAbbrev {
   font-weight: 700;
   font-size: 11px;
@@ -293,6 +316,14 @@
 
 .pickCompact.pending .pickAbbrev {
   color: var(--text-primary);
+}
+
+.pickCompact.provisionalCorrect .pickAbbrev {
+  color: var(--color-success-dark, #1e7e34);
+}
+
+.pickCompact.provisionalIncorrect .pickAbbrev {
+  color: var(--text-muted);
 }
 
 .pickLogo {
@@ -518,6 +549,16 @@
 
 .pickCard.incorrect {
   background: linear-gradient(90deg, rgba(220, 53, 69, 0.1) 0%, rgba(220, 53, 69, 0.05) 100%);
+}
+
+.pickCard.provisionalCorrect {
+  background: linear-gradient(90deg, rgba(40, 167, 69, 0.08) 0%, rgba(40, 167, 69, 0.04) 100%);
+  border: 1px dashed rgba(40, 167, 69, 0.5);
+}
+
+.pickCard.provisionalIncorrect {
+  background: linear-gradient(90deg, rgba(220, 53, 69, 0.06) 0%, rgba(220, 53, 69, 0.03) 100%);
+  border: 1px dashed rgba(220, 53, 69, 0.3);
 }
 
 .cardPickScore {
@@ -749,6 +790,16 @@
 .pickTimeline.incorrect {
   background: linear-gradient(135deg, rgba(220, 53, 69, 0.1) 0%, rgba(220, 53, 69, 0.05) 100%);
   border: 2px solid rgba(220, 53, 69, 0.3);
+}
+
+.pickTimeline.provisionalCorrect {
+  background: linear-gradient(135deg, rgba(40, 167, 69, 0.15) 0%, rgba(40, 167, 69, 0.08) 100%);
+  border: 2px dashed var(--color-success);
+}
+
+.pickTimeline.provisionalIncorrect {
+  background: linear-gradient(135deg, rgba(220, 53, 69, 0.08) 0%, rgba(220, 53, 69, 0.04) 100%);
+  border: 2px dashed rgba(220, 53, 69, 0.4);
 }
 
 .timelinePickLogo {
@@ -1049,6 +1100,19 @@
 
   .pickCompact.pending .pickAbbrev {
     color: var(--text-light);
+  }
+
+  .pickCompact.provisionalCorrect {
+    background: rgba(40, 167, 69, 0.2);
+    border-color: rgba(40, 167, 69, 0.6);
+  }
+
+  .pickCompact.provisionalCorrect .pickAbbrev {
+    color: #5cdb7a;
+  }
+
+  .pickTimeline.provisionalCorrect {
+    background: linear-gradient(135deg, rgba(40, 167, 69, 0.2) 0%, rgba(40, 167, 69, 0.1) 100%);
   }
 
   .playerCard {
