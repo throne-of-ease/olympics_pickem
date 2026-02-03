@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { fetchSchedule } from '../services/espnApi';
 import { picks as picksService, profiles as profilesService } from '../services/supabase';
 import { calculateLeaderboard, enrichGamesWithPicks } from '../services/leaderboardCalculator';
@@ -194,7 +194,7 @@ export function AppProvider({ children }) {
     } finally {
       setLoading({ games: false, leaderboard: false });
     }
-  }, []);
+  }, [includeLiveGames]);
 
   /**
    * Legacy fetchGames for backwards compatibility
@@ -236,21 +236,23 @@ export function AppProvider({ children }) {
     const newValue = value ?? !includeLiveGames;
     setIncludeLiveGames(newValue);
     saveSettings({ ...getSettings(), includeLiveGames: newValue });
-    // Trigger recalculation without refetching data
-    clearCache();
+    // Recalculation happens automatically via useEffect when includeLiveGames changes
   }, [includeLiveGames]);
 
-  // Initial fetch
-  useEffect(() => {
-    fetchTournamentData();
-  }, [fetchTournamentData]);
+  // Track if this is the initial mount
+  const isInitialMount = useRef(true);
 
-  // Recalculate when includeLiveGames changes
+  // Initial fetch and recalculate when includeLiveGames changes
   useEffect(() => {
-    if (games.length > 0) {
+    if (isInitialMount.current) {
+      // First mount - allow cache usage
+      isInitialMount.current = false;
+      fetchTournamentData(false);
+    } else {
+      // Subsequent updates (includeLiveGames changed) - skip cache to recalculate
       fetchTournamentData(true);
     }
-  }, [includeLiveGames]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [fetchTournamentData]);
 
   const value = {
     games,
