@@ -53,18 +53,13 @@ export function PickForm({ game, existingPick, onSubmit, onDelete, loading }) {
     e.preventDefault();
     setError(null);
 
+    if (!selectedWinner) {
+      setError('Please select a winner');
+      return;
+    }
+
     const scoreA = parseInt(teamAScore, 10);
     const scoreB = parseInt(teamBScore, 10);
-
-    if (isNaN(scoreA) || isNaN(scoreB)) {
-      setError('Please enter valid scores');
-      return;
-    }
-
-    if (scoreA < 0 || scoreB < 0) {
-      setError('Scores cannot be negative');
-      return;
-    }
 
     try {
       await onSubmit(game.game_id, scoreA, scoreB, confidence);
@@ -86,6 +81,12 @@ export function PickForm({ game, existingPick, onSubmit, onDelete, loading }) {
   };
 
   if (hasStarted) {
+    const pickedWinner = existingPick ? (
+      existingPick.team_a_score > existingPick.team_b_score ? game.team_a?.name :
+      existingPick.team_b_score > existingPick.team_a_score ? game.team_b?.name :
+      'Tie'
+    ) : null;
+
     return (
       <Card className={styles.card}>
         <div className={styles.locked}>
@@ -95,10 +96,10 @@ export function PickForm({ game, existingPick, onSubmit, onDelete, loading }) {
         {existingPick && (
           <div className={styles.submittedPick}>
             <div className={styles.submittedScore}>
-              Your pick: {existingPick.team_a_score} - {existingPick.team_b_score}
+              Your pick: {pickedWinner}
             </div>
             <div className={styles.submittedConfidence}>
-              Confidence: {Math.round(existingPick.confidence * 100)}%
+              Confidence: {Math.round((existingPick.confidence ?? 0.5) * 100)}%
             </div>
           </div>
         )}
@@ -154,48 +155,6 @@ export function PickForm({ game, existingPick, onSubmit, onDelete, loading }) {
               <CountryFlag team={game.team_b} size="small" />
               <span>{game.team_b?.abbreviation || game.team_b?.name || 'B'}</span>
             </button>
-          </div>
-        </div>
-
-        <div className={styles.scores}>
-          <div className={styles.scoreInput}>
-            <label>{game.team_a?.abbreviation || 'A'}</label>
-            <input
-              type="number"
-              min="0"
-              max="99"
-              value={teamAScore}
-              onChange={(e) => {
-                setTeamAScore(e.target.value);
-                // Update selected winner based on scores
-                const a = parseInt(e.target.value, 10) || 0;
-                const b = parseInt(teamBScore, 10) || 0;
-                if (a > b) setSelectedWinner('a');
-                else if (b > a) setSelectedWinner('b');
-                else setSelectedWinner('tie');
-              }}
-              placeholder="0"
-            />
-          </div>
-          <span className={styles.dash}>-</span>
-          <div className={styles.scoreInput}>
-            <label>{game.team_b?.abbreviation || 'B'}</label>
-            <input
-              type="number"
-              min="0"
-              max="99"
-              value={teamBScore}
-              onChange={(e) => {
-                setTeamBScore(e.target.value);
-                // Update selected winner based on scores
-                const a = parseInt(teamAScore, 10) || 0;
-                const b = parseInt(e.target.value, 10) || 0;
-                if (a > b) setSelectedWinner('a');
-                else if (b > a) setSelectedWinner('b');
-                else setSelectedWinner('tie');
-              }}
-              placeholder="0"
-            />
           </div>
         </div>
 
