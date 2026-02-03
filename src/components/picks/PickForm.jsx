@@ -6,6 +6,7 @@ import styles from './PickForm.module.css';
 export function PickForm({ game, existingPick, onSubmit, onDelete, loading }) {
   const [teamAScore, setTeamAScore] = useState('');
   const [teamBScore, setTeamBScore] = useState('');
+  const [confidence, setConfidence] = useState(0.5);
   const [error, setError] = useState(null);
 
   const scheduledAt = parseISO(game.scheduled_at);
@@ -17,9 +18,11 @@ export function PickForm({ game, existingPick, onSubmit, onDelete, loading }) {
     if (existingPick) {
       setTeamAScore(existingPick.team_a_score?.toString() || '');
       setTeamBScore(existingPick.team_b_score?.toString() || '');
+      setConfidence(existingPick.confidence ?? 0.5);
     } else {
       setTeamAScore('');
       setTeamBScore('');
+      setConfidence(0.5);
     }
   }, [existingPick, game.game_id]);
 
@@ -41,7 +44,7 @@ export function PickForm({ game, existingPick, onSubmit, onDelete, loading }) {
     }
 
     try {
-      await onSubmit(game.game_id, scoreA, scoreB);
+      await onSubmit(game.game_id, scoreA, scoreB, confidence);
     } catch (err) {
       setError(err.message || 'Failed to save pick');
     }
@@ -68,7 +71,12 @@ export function PickForm({ game, existingPick, onSubmit, onDelete, loading }) {
         </div>
         {existingPick && (
           <div className={styles.submittedPick}>
-            Your pick: {existingPick.team_a_score} - {existingPick.team_b_score}
+            <div className={styles.submittedScore}>
+              Your pick: {existingPick.team_a_score} - {existingPick.team_b_score}
+            </div>
+            <div className={styles.submittedConfidence}>
+              Confidence: {Math.round(existingPick.confidence * 100)}%
+            </div>
           </div>
         )}
       </Card>
@@ -120,6 +128,25 @@ export function PickForm({ game, existingPick, onSubmit, onDelete, loading }) {
               onChange={(e) => setTeamBScore(e.target.value)}
               placeholder="0"
             />
+          </div>
+        </div>
+
+        <div className={styles.confidenceSection}>
+          <label className={styles.confidenceLabel}>
+            Confidence: {Math.round(confidence * 100)}%
+          </label>
+          <input
+            type="range"
+            min="0.5"
+            max="1.0"
+            step="0.01"
+            value={confidence}
+            onChange={(e) => setConfidence(parseFloat(e.target.value))}
+            className={styles.slider}
+          />
+          <div className={styles.sliderLabels}>
+            <span>Toss-up (50%)</span>
+            <span>Certain (100%)</span>
           </div>
         </div>
 

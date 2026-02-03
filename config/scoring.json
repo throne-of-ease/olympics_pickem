@@ -1,8 +1,13 @@
 {
+  "mode": "brier",
   "points": {
     "groupStage": 1,
     "knockoutRound": 2,
     "medalRound": 3
+  },
+  "brier": {
+    "base": 25,
+    "multiplier": 100
   },
   "exactScoreBonus": {
     "enabled": false,

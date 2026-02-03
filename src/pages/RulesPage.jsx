@@ -16,25 +16,71 @@ export function RulesPage() {
       </Card>
 
       <Card className={styles.section}>
-        <h2>Scoring</h2>
+        <h2>Scoring: Brier Score</h2>
         <p>
-          Points are awarded for correctly predicting the <strong>result</strong> of
-          each game (win/loss/tie). You don't need to predict the exact score — just
-          who wins or if it's a tie.
+          This tournament uses a <strong>Brier score</strong> system (modeled after FiveThirtyEight). 
+          This rewards not only predicting the correct outcome but also how confident you are in that prediction.
+        </p>
+        <p>
+          For each game, you choose the winner and a <strong>Confidence Level</strong> from 50% (toss-up) to 100% (certain).
         </p>
 
+        <div className={styles.exampleHeader}>Example Points (Group Stage):</div>
+        <div className={styles.pointsTable}>
+          <div className={styles.pointsRow}>
+            <span className={styles.round}>100% Correct</span>
+            <span className={styles.points}>+25 pts</span>
+          </div>
+          <div className={styles.pointsRow}>
+            <span className={styles.round}>90% Correct</span>
+            <span className={styles.points}>+16 pts</span>
+          </div>
+          <div className={styles.pointsRow}>
+            <span className={styles.round}>75% Correct</span>
+            <span className={styles.points}>+18.75 pts</span>
+          </div>
+          <div className={styles.pointsRow}>
+            <span className={styles.round}>50% (Any Result)</span>
+            <span className={styles.points}>0 pts</span>
+          </div>
+          <div className={styles.pointsRow}>
+            <span className={styles.round}>75% Wrong</span>
+            <span className={styles.points}>-31.25 pts</span>
+          </div>
+          <div className={styles.pointsRow}>
+            <span className={styles.round}>90% Wrong</span>
+            <span className={styles.points}>-56 pts</span>
+          </div>
+          <div className={styles.pointsRow}>
+            <span className={styles.round}>100% Wrong</span>
+            <span className={styles.points}>-75 pts</span>
+          </div>
+        </div>
+
+        <p className={styles.note}>
+          <strong>Formula:</strong> Points = Round Multiplier × (25 - (100 × (Outcome - Confidence)²))
+          <br />
+          Where Outcome is 1 for correct and 0 for incorrect.
+        </p>
+      </Card>
+
+      <Card className={styles.section}>
+        <h2>Round Multipliers</h2>
+        <p>
+          Points are multiplied based on the importance of the round:
+        </p>
         <div className={styles.pointsTable}>
           <div className={styles.pointsRow}>
             <span className={styles.round}>Group Stage</span>
-            <span className={styles.points}>1 point</span>
+            <span className={styles.points}>1x</span>
           </div>
           <div className={styles.pointsRow}>
             <span className={styles.round}>Knockout Round</span>
-            <span className={styles.points}>2 points</span>
+            <span className={styles.points}>2x</span>
           </div>
           <div className={styles.pointsRow}>
             <span className={styles.round}>Medal Round</span>
-            <span className={styles.points}>3 points</span>
+            <span className={styles.points}>3x</span>
           </div>
         </div>
       </Card>

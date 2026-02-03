@@ -129,8 +129,43 @@
   background-color: var(--color-gray-50);
   border-radius: var(--border-radius-sm);
   text-align: center;
-  font-weight: 500;
   color: var(--text-secondary);
+}
+
+.submittedScore {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.submittedConfidence {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+}
+
+.confidenceSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  margin: var(--spacing-sm) 0;
+}
+
+.confidenceLabel {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.slider {
+  width: 100%;
+  cursor: pointer;
+}
+
+.sliderLabels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--text-muted);
 }
 
 @media (prefers-color-scheme: dark) {

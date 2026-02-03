@@ -87,6 +87,17 @@ function parsePickRow(row, playerId) {
   const rawScoreB = parseInt(row.team_b_score || row.teamb_score, 10);
   const teamAScore = isNaN(rawScoreA) ? 0 : rawScoreA;
   const teamBScore = isNaN(rawScoreB) ? 0 : rawScoreB;
+  
+  // Parse confidence
+  let confidence = parseFloat(row.confidence || row.probability || row.prob || '0.5');
+  if (isNaN(confidence)) {
+    confidence = 0.5;
+  } else if (confidence >= 50 && confidence <= 100) {
+    confidence = confidence / 100;
+  } else if (confidence > 1 && confidence < 50) {
+    confidence = 1.0;
+  }
+  confidence = Math.max(0.5, Math.min(1.0, confidence));
 
   return {
     playerId,
@@ -95,6 +106,7 @@ function parsePickRow(row, playerId) {
     teamAScore,
     teamB: row.team_b || row.teamb,
     teamBScore,
+    confidence,
     predictedResult: getResult(teamAScore, teamBScore),
   };
 }
@@ -170,6 +182,7 @@ export async function loadAllPlayerPicksFromSupabase() {
         gameId: pick.game_id,
         teamAScore,
         teamBScore,
+        confidence: pick.confidence ?? 0.5,
         predictedResult: getResult(teamAScore, teamBScore),
       });
     }

@@ -65,7 +65,22 @@
 
 .points {
   font-weight: 600;
-  color: var(--primary);
+  color: var(--color-primary);
+}
+
+.exampleHeader {
+  margin-top: var(--spacing-md);
+  margin-bottom: var(--spacing-xs);
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+.note {
+  margin-top: var(--spacing-md);
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+  line-height: 1.6;
 }
 
 .list {

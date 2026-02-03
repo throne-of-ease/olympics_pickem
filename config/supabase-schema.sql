@@ -43,6 +43,7 @@ CREATE TABLE picks (
   game_id TEXT NOT NULL,  -- ESPN event ID
   team_a_score INTEGER NOT NULL CHECK (team_a_score >= 0),
   team_b_score INTEGER NOT NULL CHECK (team_b_score >= 0),
+  confidence FLOAT DEFAULT 0.5 CHECK (confidence >= 0.5 AND confidence <= 1.0),
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW(),
   UNIQUE(user_id, game_id)

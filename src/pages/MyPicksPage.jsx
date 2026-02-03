@@ -97,7 +97,7 @@ export function MyPicksPage() {
   }, [games, myPicks]);
 
   // Submit pick
-  const handleSubmitPick = async (gameId, teamAScore, teamBScore) => {
+  const handleSubmitPick = async (gameId, teamAScore, teamBScore, confidence) => {
     if (!user) return;
 
     setSaving(true);
@@ -107,7 +107,8 @@ export function MyPicksPage() {
         user.id,
         gameId,
         teamAScore,
-        teamBScore
+        teamBScore,
+        confidence
       );
 
       setMyPicks((prev) => {

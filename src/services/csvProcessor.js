@@ -51,6 +51,7 @@ function parsePickRow(row, rowNum) {
   const teamAScore = row.team_a_score || row.teama_score || row.away_score || row.awayscore;
   const teamB = row.team_b || row.teamb || row.home_team || row.hometeam;
   const teamBScore = row.team_b_score || row.teamb_score || row.home_score || row.homescore;
+  const rawConfidence = row.confidence || row.probability || row.prob || '0.5';
 
   if (!gameId) {
     return { error: { row: rowNum, message: 'Missing game_id', type: 'missing_field' } };
@@ -71,6 +72,19 @@ function parsePickRow(row, rowNum) {
     return { error: { row: rowNum, message: 'Scores cannot be negative', type: 'invalid_score' } };
   }
 
+  // Parse confidence: handle both 0-1 and 50-100 ranges
+  let confidence = parseFloat(rawConfidence);
+  if (isNaN(confidence)) {
+    confidence = 0.5;
+  } else if (confidence >= 50 && confidence <= 100) {
+    confidence = confidence / 100;
+  } else if (confidence > 1 && confidence < 50) {
+    confidence = 1.0;
+  }
+  
+  // Ensure it's in the 0.5 to 1.0 range
+  confidence = Math.max(0.5, Math.min(1.0, confidence));
+
   return {
     data: {
       gameId: gameId.toString(),
@@ -78,6 +92,7 @@ function parsePickRow(row, rowNum) {
       teamAScore: scoreA,
       teamB: teamB,
       teamBScore: scoreB,
+      confidence: confidence,
       predictedResult: getResult(scoreA, scoreB),
     },
   };
@@ -210,6 +225,7 @@ export function transformPicksToDatabase(picks, playerId, games) {
       predicted_team_a_score: pick.teamAScore,
       predicted_team_b_score: pick.teamBScore,
       predicted_result: pick.predictedResult,
+      confidence: pick.confidence || 0.5,
       submitted_team_a_name: pick.teamA,
       submitted_team_b_name: pick.teamB,
       game_round_type: game?.roundType || 'groupStage',
@@ -223,13 +239,13 @@ export function transformPicksToDatabase(picks, playerId, games) {
  * @returns {string} CSV template content
  */
 export function generatePicksTemplate(games) {
-  const headers = ['game_id', 'team_a', 'team_a_score', 'team_b', 'team_b_score'];
+  const headers = ['game_id', 'team_a', 'team_a_score', 'team_b', 'team_b_score', 'confidence'];
   const rows = [headers.join(',')];
 
   for (const game of games) {
     const teamAName = game.teamA?.name || 'Team A';
     const teamBName = game.teamB?.name || 'Team B';
-    rows.push(`${game.espnEventId},${teamAName},,${teamBName},`);
+    rows.push(`${game.espnEventId},${teamAName},,${teamBName},,0.5`);
   }
 
   return rows.join('\n');

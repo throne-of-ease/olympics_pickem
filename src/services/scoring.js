@@ -74,6 +74,25 @@ export function getPointsForRound(roundType) {
 }
 
 /**
+ * Calculate Brier-style points
+ * Formula: Multiplier * (Base - (100 * (Outcome - Confidence)^2))
+ * 
+ * @param {boolean} isCorrect - Whether the pick was correct
+ * @param {number} confidence - Confidence level (0.5 to 1.0)
+ * @param {number} roundMultiplier - Multiplier for the round
+ * @param {Object} config - Scoring config
+ * @returns {number} Calculated points
+ */
+export function calculateBrierPoints(isCorrect, confidence = 0.5, roundMultiplier = 1, config = scoringConfig) {
+  const brierConfig = config.brier || { base: 25, multiplier: 100 };
+  const outcome = isCorrect ? 1 : 0;
+  const conf = Math.max(0.5, Math.min(1.0, confidence || 0.5));
+  
+  const points = roundMultiplier * (brierConfig.base - (brierConfig.multiplier * Math.pow(outcome - conf, 2)));
+  return Number(points.toFixed(2));
+}
+
+/**
  * Calculate points for a single pick
  * @param {Object} pick - Player pick with predicted scores/result
  * @param {Object} game - Game with actual scores/result
@@ -87,6 +106,7 @@ export function calculatePickScore(pick, game, config = scoringConfig) {
     basePoints: 0,
     bonusPoints: 0,
     totalPoints: 0,
+    confidence: pick.confidence ?? 0.5,
     details: {},
   };
 
@@ -105,17 +125,21 @@ export function calculatePickScore(pick, game, config = scoringConfig) {
 
   const actualResult = getResult(actualScores.teamA, actualScores.teamB);
   const roundType = getRoundType(game);
-  const basePoints = config.points[roundType] || 1;
+  const roundMultiplier = config.points[roundType] || 1;
 
   // Compare results
   const predictedResult = pick.predictedResult || getResult(pick.teamAScore, pick.teamBScore);
   result.isCorrect = compareResults(predictedResult, actualResult);
 
-  if (result.isCorrect) {
-    result.basePoints = basePoints;
-    result.totalPoints = basePoints;
+  if (config.mode === 'brier') {
+    const points = calculateBrierPoints(result.isCorrect, result.confidence, roundMultiplier, config);
+    result.basePoints = points;
+    result.totalPoints = points;
+  } else if (result.isCorrect) {
+    result.basePoints = roundMultiplier;
+    result.totalPoints = roundMultiplier;
 
-    // Check for exact score bonus
+    // Check for exact score bonus (only in classic mode for now, or as a separate bonus)
     if (config.exactScoreBonus?.enabled) {
       const predictedScores = {
         teamA: pick.teamAScore ?? pick.predicted_team_a_score,
@@ -267,6 +291,7 @@ export default {
   compareExactScores,
   getRoundType,
   getPointsForRound,
+  calculateBrierPoints,
   calculatePickScore,
   calculatePlayerScore,
   calculateLeaderboard,

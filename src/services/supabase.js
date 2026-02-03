@@ -261,7 +261,7 @@ export const picks = {
   /**
    * Submit or update a pick
    */
-  async upsert(userId, gameId, teamAScore, teamBScore) {
+  async upsert(userId, gameId, teamAScore, teamBScore, confidence = 0.5) {
     if (!supabase) throw new Error('Supabase not configured');
 
     const { data, error } = await supabase
@@ -272,6 +272,7 @@ export const picks = {
           game_id: gameId,
           team_a_score: teamAScore,
           team_b_score: teamBScore,
+          confidence: confidence,
         },
         {
           onConflict: 'user_id,game_id',

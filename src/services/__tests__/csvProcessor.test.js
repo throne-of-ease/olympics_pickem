@@ -23,6 +23,7 @@ describe('csvProcessor.js', () => {
         teamAScore: 4,
         teamB: 'USA',
         teamBScore: 3,
+        confidence: 0.5,
         predictedResult: 'win_a',
       });
       expect(result.picks[1].predictedResult).toBe('tie');
@@ -250,6 +251,7 @@ describe('csvProcessor.js', () => {
         predicted_team_a_score: 3,
         predicted_team_b_score: 2,
         predicted_result: 'win_a',
+        confidence: 0.5,
         submitted_team_a_name: 'Canada',
         submitted_team_b_name: 'USA',
         game_round_type: 'groupStage',
@@ -300,9 +302,9 @@ describe('csvProcessor.js', () => {
       const template = generatePicksTemplate(mockGames);
       const lines = template.split('\n');
 
-      expect(lines[0]).toBe('game_id,team_a,team_a_score,team_b,team_b_score');
-      expect(lines[1]).toBe('401845663,Canada,,USA,');
-      expect(lines[2]).toBe('401845664,Finland,,Sweden,');
+      expect(lines[0]).toBe('game_id,team_a,team_a_score,team_b,team_b_score,confidence');
+      expect(lines[1]).toBe('401845663,Canada,,USA,,0.5');
+      expect(lines[2]).toBe('401845664,Finland,,Sweden,,0.5');
     });
 
     it('handles games with missing team data', () => {
@@ -313,7 +315,7 @@ describe('csvProcessor.js', () => {
       const template = generatePicksTemplate(mockGames);
       const lines = template.split('\n');
 
-      expect(lines[1]).toBe('401845663,Team A,,Team B,');
+      expect(lines[1]).toBe('401845663,Team A,,Team B,,0.5');
     });
 
     it('handles empty games array', () => {
@@ -321,7 +323,7 @@ describe('csvProcessor.js', () => {
       const lines = template.split('\n');
 
       expect(lines).toHaveLength(1);
-      expect(lines[0]).toBe('game_id,team_a,team_a_score,team_b,team_b_score');
+      expect(lines[0]).toBe('game_id,team_a,team_a_score,team_b,team_b_score,confidence');
     });
   });
 });
