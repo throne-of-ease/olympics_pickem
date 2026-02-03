@@ -8,6 +8,7 @@ export function PickForm({ game, existingPick, onSubmit, onDelete, loading }) {
   const [teamBScore, setTeamBScore] = useState('');
   const [confidence, setConfidence] = useState(0.5);
   const [error, setError] = useState(null);
+  const [selectedWinner, setSelectedWinner] = useState(null); // 'a', 'b', or 'tie'
 
   const scheduledAt = parseISO(game.scheduled_at);
   const hasStarted = isPast(scheduledAt);
@@ -19,12 +20,34 @@ export function PickForm({ game, existingPick, onSubmit, onDelete, loading }) {
       setTeamAScore(existingPick.team_a_score?.toString() || '');
       setTeamBScore(existingPick.team_b_score?.toString() || '');
       setConfidence(existingPick.confidence ?? 0.5);
+      // Determine winner from scores
+      const a = existingPick.team_a_score ?? 0;
+      const b = existingPick.team_b_score ?? 0;
+      if (a > b) setSelectedWinner('a');
+      else if (b > a) setSelectedWinner('b');
+      else setSelectedWinner('tie');
     } else {
       setTeamAScore('');
       setTeamBScore('');
       setConfidence(0.5);
+      setSelectedWinner(null);
     }
   }, [existingPick, game.game_id]);
+
+  // Quick pick handler - select a winner with default scores
+  const handleQuickPick = (winner) => {
+    setSelectedWinner(winner);
+    if (winner === 'a') {
+      setTeamAScore('3');
+      setTeamBScore('1');
+    } else if (winner === 'b') {
+      setTeamAScore('1');
+      setTeamBScore('3');
+    } else {
+      setTeamAScore('2');
+      setTeamBScore('2');
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -105,6 +128,35 @@ export function PickForm({ game, existingPick, onSubmit, onDelete, loading }) {
       <form onSubmit={handleSubmit} className={styles.form}>
         {error && <div className={styles.error}>{error}</div>}
 
+        <div className={styles.quickPick}>
+          <span className={styles.quickPickLabel}>Pick winner:</span>
+          <div className={styles.quickPickButtons}>
+            <button
+              type="button"
+              className={`${styles.quickPickBtn} ${selectedWinner === 'a' ? styles.selected : ''}`}
+              onClick={() => handleQuickPick('a')}
+            >
+              <CountryFlag team={game.team_a} size="small" />
+              <span>{game.team_a?.abbreviation || game.team_a?.name || 'A'}</span>
+            </button>
+            <button
+              type="button"
+              className={`${styles.quickPickBtn} ${styles.tieBtn} ${selectedWinner === 'tie' ? styles.selected : ''}`}
+              onClick={() => handleQuickPick('tie')}
+            >
+              TIE
+            </button>
+            <button
+              type="button"
+              className={`${styles.quickPickBtn} ${selectedWinner === 'b' ? styles.selected : ''}`}
+              onClick={() => handleQuickPick('b')}
+            >
+              <CountryFlag team={game.team_b} size="small" />
+              <span>{game.team_b?.abbreviation || game.team_b?.name || 'B'}</span>
+            </button>
+          </div>
+        </div>
+
         <div className={styles.scores}>
           <div className={styles.scoreInput}>
             <label>{game.team_a?.abbreviation || 'A'}</label>
@@ -113,7 +165,15 @@ export function PickForm({ game, existingPick, onSubmit, onDelete, loading }) {
               min="0"
               max="99"
               value={teamAScore}
-              onChange={(e) => setTeamAScore(e.target.value)}
+              onChange={(e) => {
+                setTeamAScore(e.target.value);
+                // Update selected winner based on scores
+                const a = parseInt(e.target.value, 10) || 0;
+                const b = parseInt(teamBScore, 10) || 0;
+                if (a > b) setSelectedWinner('a');
+                else if (b > a) setSelectedWinner('b');
+                else setSelectedWinner('tie');
+              }}
               placeholder="0"
             />
           </div>
@@ -125,7 +185,15 @@ export function PickForm({ game, existingPick, onSubmit, onDelete, loading }) {
               min="0"
               max="99"
               value={teamBScore}
-              onChange={(e) => setTeamBScore(e.target.value)}
+              onChange={(e) => {
+                setTeamBScore(e.target.value);
+                // Update selected winner based on scores
+                const a = parseInt(teamAScore, 10) || 0;
+                const b = parseInt(e.target.value, 10) || 0;
+                if (a > b) setSelectedWinner('a');
+                else if (b > a) setSelectedWinner('b');
+                else setSelectedWinner('tie');
+              }}
               placeholder="0"
             />
           </div>
