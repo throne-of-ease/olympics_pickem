@@ -1,4 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { fetchSchedule } from '../services/espnApi';
+import { picks as picksService, profiles as profilesService } from '../services/supabase';
+import { calculateLeaderboard, enrichGamesWithPicks } from '../services/leaderboardCalculator';
 
 const AppContext = createContext(null);
 
@@ -60,8 +63,10 @@ export function AppProvider({ children }) {
   const [lastUpdated, setLastUpdated] = useState(null);
 
   /**
-   * Fetch all tournament data from combined endpoint
-   * Reduces function invocations by 50% (1 call instead of 2)
+   * Fetch all tournament data client-side
+   * - ESPN games directly (no function invocation)
+   * - Supabase picks via RLS (visible picks only)
+   * - Calculate leaderboard locally
    */
   const fetchTournamentData = useCallback(async (skipCache = false) => {
     // Check cache first (unless forced refresh)
@@ -83,32 +88,56 @@ export function AppProvider({ children }) {
     setLoading({ games: true, leaderboard: true });
     setError({ games: null, leaderboard: null });
 
-    // Add timeout to prevent indefinite loading
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000);
-
     try {
-      const response = await fetch('/api/tournament-data', { signal: controller.signal });
-      clearTimeout(timeoutId);
+      // Fetch all data in parallel
+      const [espnGames, visiblePicks, allProfiles] = await Promise.all([
+        fetchSchedule('20260211-20260222'),
+        picksService.getAllVisible(),
+        profilesService.getAll(),
+      ]);
 
-      if (!response.ok) throw new Error('Failed to fetch tournament data');
+      console.log('Client-side fetch complete:', {
+        games: espnGames.length,
+        picks: visiblePicks.length,
+        profiles: allProfiles.length,
+      });
 
-      const data = await response.json();
+      // Calculate leaderboard client-side
+      const calculatedLeaderboard = calculateLeaderboard(espnGames, visiblePicks, allProfiles);
+
+      // Enrich games with pick information
+      const enrichedGames = enrichGamesWithPicks(espnGames, visiblePicks);
+
+      // Calculate tournament progress
+      const totalGames = espnGames.length;
+      const completedGames = espnGames.filter(g => g.status?.state === 'final').length;
+      const inProgressGames = espnGames.filter(g => g.status?.state === 'in_progress').length;
+
+      const progressData = {
+        totalGames,
+        completedGames,
+        inProgressGames,
+        percentComplete: totalGames > 0 ? ((completedGames / totalGames) * 100).toFixed(1) : '0.0',
+      };
 
       // Update state
-      setGames(data.games || []);
-      setLeaderboard(data.leaderboard || []);
-      setTournamentProgress(data.tournamentProgress);
-      setPlayers(data.leaderboard?.map(p => ({
+      setGames(enrichedGames);
+      setLeaderboard(calculatedLeaderboard);
+      setTournamentProgress(progressData);
+      setPlayers(calculatedLeaderboard.map(p => ({
         id: p.playerId,
         name: p.playerName,
-      })) || []);
-      setLastUpdated(new Date(data.timestamp));
+      })));
+      setLastUpdated(new Date());
 
       // Cache the response
-      setCachedData(data);
+      setCachedData({
+        games: enrichedGames,
+        leaderboard: calculatedLeaderboard,
+        tournamentProgress: progressData,
+        timestamp: new Date().toISOString(),
+      });
     } catch (err) {
-      clearTimeout(timeoutId);
       const message = err.name === 'AbortError' ? 'Request timed out' : err.message;
       console.error('Error fetching tournament data:', message);
       setError({ games: message, leaderboard: message });
@@ -128,7 +157,7 @@ export function AppProvider({ children }) {
 
   /**
    * Legacy fetchGames for backwards compatibility
-   * Now uses the combined endpoint internally
+   * Now uses the combined client-side fetch internally
    */
   const fetchGames = useCallback(async () => {
     await fetchTournamentData();
@@ -136,7 +165,7 @@ export function AppProvider({ children }) {
 
   /**
    * Legacy fetchLeaderboard for backwards compatibility
-   * Now uses the combined endpoint internally
+   * Now uses the combined client-side fetch internally
    */
   const fetchLeaderboard = useCallback(async () => {
     await fetchTournamentData();

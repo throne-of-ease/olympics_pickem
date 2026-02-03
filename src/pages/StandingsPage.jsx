@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Card, Loading, Button, CountryFlag } from '../components/common';
+import { fetchStandings as fetchStandingsFromESPN } from '../services/espnApi';
 import styles from './StandingsPage.module.css';
 
 export function StandingsPage() {
@@ -12,11 +13,8 @@ export function StandingsPage() {
     setError(null);
 
     try {
-      const response = await fetch('/api/standings');
-      if (!response.ok) throw new Error('Failed to fetch standings');
-
-      const data = await response.json();
-      setStandings(data.standings || []);
+      const data = await fetchStandingsFromESPN();
+      setStandings(data || []);
     } catch (err) {
       setError(err.message);
     } finally {
