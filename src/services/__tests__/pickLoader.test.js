@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   loadPlayers,
   loadPlayerPicks,
@@ -6,8 +6,15 @@ import {
 } from '../pickLoader.js';
 
 describe('pickLoader.js', () => {
+  let consoleWarnSpy;
+
   beforeEach(() => {
     vi.resetAllMocks();
+    consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    consoleWarnSpy?.mockRestore();
   });
 
   describe('loadPlayers', () => {

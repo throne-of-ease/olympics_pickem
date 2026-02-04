@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   fetchSchedule,
   fetchGameSummary,
@@ -7,8 +7,18 @@ import {
 } from '../espnApi.js';
 
 describe('espnApi.js', () => {
+  let consoleErrorSpy;
+  let consoleWarnSpy;
+
   beforeEach(() => {
     vi.resetAllMocks();
+    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    consoleErrorSpy?.mockRestore();
+    consoleWarnSpy?.mockRestore();
   });
 
   describe('fetchSchedule', () => {

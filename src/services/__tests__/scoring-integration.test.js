@@ -18,7 +18,7 @@ import {
 import { parsePlayerPicksCSV } from '../csvProcessor.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const projectRoot = join(__dirname, '../../..');
+const projectRoot = process.cwd();
 
 // Load mock game data
 function loadMockGames() {

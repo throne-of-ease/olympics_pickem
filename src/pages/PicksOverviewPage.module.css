@@ -966,14 +966,19 @@
 
 /* Mobile-first compact table - fits 4 players */
 @media (max-width: 480px) {
+  .compactTable {
+    table-layout: auto;
+  }
+
   /* Compact table - ultra dense for 4 players */
   .compactTable th,
   .compactTable td {
-    padding: 4px 3px;
+    padding: 6px 4px;
   }
 
   .playerCol {
-    width: 56px;
+    min-width: 60px;
+    max-width: 76px;
   }
 
   .playerName {
@@ -985,7 +990,7 @@
   }
 
   .playerPoints {
-    font-size: 13px;
+    font-size: 14px;
   }
 
   .pointsDiff {
@@ -1005,17 +1010,17 @@
   }
 
   .teamAbbrev {
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 700;
   }
 
   .scoreInline {
-    font-size: 11px;
+    font-size: 12px;
     min-width: 24px;
   }
 
   .gameTime {
-    font-size: 9px;
+    font-size: 10px;
   }
 
   .pickCell {
@@ -1024,12 +1029,12 @@
 
   .pickCompact {
     padding: 3px 4px;
-    min-width: 32px;
+    min-width: 48px;
     gap: 1px;
   }
 
   .pickAbbrev {
-    font-size: 10px;
+    font-size: 11px;
   }
 
   .pickLogo {
@@ -1038,7 +1043,7 @@
   }
 
   .pickPoints {
-    font-size: 10px;
+    font-size: 11px;
   }
 
   .pickTie {
@@ -1076,34 +1081,41 @@
   .timelineDate {
     margin-left: calc(-1 * var(--spacing-md));
   }
+
+  .timelinePicks {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: var(--spacing-xs);
+  }
 }
 
 /* Extra small screens - even more compact */
 @media (max-width: 360px) {
   .compactTable th,
   .compactTable td {
-    padding: 3px 2px;
+    padding: 5px 3px;
   }
 
   .playerCol {
-    width: 48px;
+    min-width: 52px;
+    max-width: 64px;
   }
 
   .playerInitials {
-    font-size: 10px;
+    font-size: 11px;
   }
 
   .playerPoints {
-    font-size: 12px;
+    font-size: 13px;
   }
 
   .pickCompact {
-    min-width: 28px;
+    min-width: 44px;
     padding: 2px 3px;
   }
 
   .pickAbbrev {
-    font-size: 9px;
+    font-size: 10px;
   }
 
   .pickLogo {
@@ -1116,11 +1128,11 @@
   }
 
   .teamAbbrev {
-    font-size: 9px;
+    font-size: 10px;
   }
 
   .scoreInline {
-    font-size: 10px;
+    font-size: 11px;
   }
 }
 

@@ -90,6 +90,11 @@ olympics_pickem/
 └── data/                  # Sample CSVs, mock ESPN responses, SQL schemas
 ```
 
+## Testing Notes
+
+- Scoring integration tests rely on mock fixtures in `public/data/mock-games.json` and `public/data/picks/*.csv`.
+- If you regenerate fixtures, keep game IDs aligned with the test expectations in `src/services/__tests__/scoring-integration.test.js`.
+
 ## Scoring Rules
 
 Points awarded for correct **result only** (win/loss/tie):
