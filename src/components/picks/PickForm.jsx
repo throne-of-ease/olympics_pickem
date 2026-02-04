@@ -25,17 +25,13 @@ export function PickForm({ game, existingPick, onSubmit, onDelete, loading }) {
     return null;
   };
 
-  // Calculate points preview based on selected team and confidence
+  // Calculate points preview for both teams based on confidence
   const pointsPreview = useMemo(() => {
-    if (!selectedTeam) return null;
     const roundMultiplier = scoringConfig.points[game.roundType || game.round_type || 'groupStage'] || 1;
     const winPoints = calculateBrierPoints(true, confidence, roundMultiplier, scoringConfig);
     const losePoints = calculateBrierPoints(false, confidence, roundMultiplier, scoringConfig);
-    const teamName = selectedTeam === 'team_a'
-      ? (game.team_a?.abbreviation || game.team_a?.name || 'Team A')
-      : (game.team_b?.abbreviation || game.team_b?.name || 'Team B');
-    return { teamName, winPoints, losePoints };
-  }, [selectedTeam, confidence, game]);
+    return { winPoints, losePoints };
+  }, [confidence, game]);
 
   // Initialize form with existing pick
   useEffect(() => {
@@ -118,27 +114,19 @@ export function PickForm({ game, existingPick, onSubmit, onDelete, loading }) {
 
   return (
     <Card className={styles.card}>
-      <div className={styles.gameInfo}>
-        <div className={styles.teams}>
-          <div className={styles.team}>
-            <CountryFlag team={game.team_a} size="small" />
-            <span>{game.team_a?.name || 'TBD'}</span>
-          </div>
-          <span className={styles.vs}>vs</span>
-          <div className={styles.team}>
-            <CountryFlag team={game.team_b} size="small" />
-            <span>{game.team_b?.name || 'TBD'}</span>
-          </div>
-        </div>
-        <div className={styles.time}>
-          {format(scheduledAt, 'EEE, MMM d')} at {format(scheduledAt, 'h:mm a')}
-        </div>
+      <div className={styles.time}>
+        {format(scheduledAt, 'EEE, MMM d')} at {format(scheduledAt, 'h:mm a')}
       </div>
 
       <form onSubmit={handleSubmit} className={styles.form}>
         {error && <div className={styles.error}>{error}</div>}
 
         <div className={styles.teamSelection}>
+          <div className={styles.pointsHint}>
+            <span className={styles.winPoints}>+{pointsPreview.winPoints}</span>
+            <span className={styles.losePoints}>{pointsPreview.losePoints}</span>
+          </div>
+
           <button
             type="button"
             className={`${styles.teamButton} ${selectedTeam === 'team_a' ? styles.selected : ''}`}
@@ -148,6 +136,8 @@ export function PickForm({ game, existingPick, onSubmit, onDelete, loading }) {
             <span className={styles.teamButtonName}>{game.team_a?.abbreviation || game.team_a?.name || 'A'}</span>
           </button>
 
+          <span className={styles.vs}>vs</span>
+
           <button
             type="button"
             className={`${styles.teamButton} ${selectedTeam === 'team_b' ? styles.selected : ''}`}
@@ -156,6 +146,11 @@ export function PickForm({ game, existingPick, onSubmit, onDelete, loading }) {
             <CountryFlag team={game.team_b} size="medium" />
             <span className={styles.teamButtonName}>{game.team_b?.abbreviation || game.team_b?.name || 'B'}</span>
           </button>
+
+          <div className={styles.pointsHint}>
+            <span className={styles.winPoints}>+{pointsPreview.winPoints}</span>
+            <span className={styles.losePoints}>{pointsPreview.losePoints}</span>
+          </div>
         </div>
 
         <div className={styles.confidenceSection}>
@@ -172,26 +167,10 @@ export function PickForm({ game, existingPick, onSubmit, onDelete, loading }) {
             className={styles.slider}
           />
           <div className={styles.sliderLabels}>
-            <span>Toss-up (50%)</span>
-            <span>Certain (100%)</span>
-          </div>
-          <div className={styles.confidenceHint}>
-            Higher confidence = more points if correct, but more penalty if wrong
+            <span>50%</span>
+            <span>100%</span>
           </div>
         </div>
-
-        {pointsPreview && (
-          <div className={styles.pointsPreview}>
-            <div className={styles.previewRow}>
-              <span>If {pointsPreview.teamName} wins:</span>
-              <span className={styles.winPoints}>+{pointsPreview.winPoints} pts</span>
-            </div>
-            <div className={styles.previewRow}>
-              <span>If {pointsPreview.teamName} loses:</span>
-              <span className={styles.losePoints}>{pointsPreview.losePoints} pts</span>
-            </div>
-          </div>
-        )}
 
         <div className={styles.actions}>
           <Button type="submit" loading={loading} size="small" disabled={!selectedTeam}>

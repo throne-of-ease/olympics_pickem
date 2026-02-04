@@ -1,41 +1,24 @@
 .card {
-  padding: var(--spacing-md);
-}
-
-.gameInfo {
-  margin-bottom: var(--spacing-md);
-}
-
-.teams {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--spacing-md);
-  margin-bottom: var(--spacing-xs);
-}
-
-.team {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  font-weight: 500;
-}
-
-.vs {
-  color: var(--text-muted);
-  font-size: var(--font-size-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
 }
 
 .time {
   text-align: center;
   color: var(--text-muted);
   font-size: var(--font-size-sm);
+  margin-bottom: var(--spacing-sm);
+}
+
+.vs {
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
 }
 
 .form {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
+  gap: var(--spacing-sm);
 }
 
 .error {
@@ -50,9 +33,19 @@
 /* Team Selection Styles */
 .teamSelection {
   display: flex;
-  align-items: stretch;
+  align-items: center;
   justify-content: center;
   gap: var(--spacing-sm);
+}
+
+.pointsHint {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  min-width: 36px;
 }
 
 .teamButton {
@@ -60,9 +53,9 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-md);
-  min-width: 90px;
+  gap: 4px;
+  padding: var(--spacing-sm) var(--spacing-md);
+  min-width: 80px;
   background: var(--bg-secondary);
   border: 2px solid var(--border-color);
   border-radius: var(--border-radius);
@@ -87,46 +80,11 @@
   color: var(--text-primary);
 }
 
-.tieButton {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-md);
-  min-width: 70px;
-  background: var(--bg-secondary);
-  border: 2px solid var(--border-color);
-  border-radius: var(--border-radius);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: var(--font-size-sm);
-  font-weight: 500;
-  color: var(--text-secondary);
-}
-
-.tieButton:hover {
-  border-color: var(--color-primary);
-  background: var(--bg-primary);
-}
-
-.tieButton.selected {
-  border-color: var(--color-primary);
-  background: rgba(var(--color-primary-rgb, 37, 99, 235), 0.1);
-  box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb, 37, 99, 235), 0.2);
-  color: var(--text-primary);
-}
-
-.tieIcon {
-  font-size: var(--font-size-xl);
-}
-
 /* Confidence Section */
 .confidenceSection {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs);
-  margin: var(--spacing-sm) 0;
+  gap: 2px;
 }
 
 .confidenceLabel {
@@ -147,14 +105,6 @@
   justify-content: space-between;
   font-size: 10px;
   color: var(--text-muted);
-}
-
-.confidenceHint {
-  text-align: center;
-  font-size: var(--font-size-xs);
-  color: var(--text-muted);
-  font-style: italic;
-  margin-top: var(--spacing-xs);
 }
 
 /* Actions */
@@ -200,32 +150,11 @@
   color: var(--text-muted);
 }
 
-/* Points Preview */
-.pointsPreview {
-  background: var(--color-gray-50);
-  border-radius: var(--border-radius);
-  padding: var(--spacing-sm) var(--spacing-md);
-  margin-top: var(--spacing-xs);
-}
-
-.previewRow {
-  display: flex;
-  justify-content: space-between;
-  padding: var(--spacing-xs) 0;
-  font-size: var(--font-size-sm);
-}
-
-.previewRow:first-child {
-  border-bottom: 1px solid var(--border-color);
-}
-
 .winPoints {
-  font-weight: 700;
   color: var(--color-success);
 }
 
 .losePoints {
-  font-weight: 700;
   color: var(--color-error);
 }
 
@@ -237,10 +166,6 @@
 
   .submittedPick {
     background-color: var(--color-gray-800);
-  }
-
-  .pointsPreview {
-    background: var(--color-gray-800);
   }
 
   .teamButton {
@@ -258,12 +183,13 @@
 
 /* Mobile responsiveness */
 @media (max-width: 400px) {
-  .teamSelection {
-    flex-wrap: wrap;
+  .pointsHint {
+    min-width: 28px;
+    font-size: 10px;
   }
 
   .teamButton {
-    flex: 1;
-    min-width: 80px;
+    min-width: 70px;
+    padding: var(--spacing-xs) var(--spacing-sm);
   }
 }
