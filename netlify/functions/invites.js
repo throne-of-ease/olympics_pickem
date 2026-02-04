@@ -40,7 +40,7 @@ export async function handler(event) {
       case 'POST':
         return handleCreateInvite(event, supabase, user);
       case 'DELETE':
-        return handleDeleteInvite(event, supabase);
+        return handleDeleteInvite(event);
       default:
         return errorResponse('Method not allowed', 405);
     }
@@ -104,7 +104,7 @@ async function handleCreateInvite(event, supabase, user) {
  * DELETE /api/invites - Delete an invite (admin only)
  * Query params: id, allowUsed (optional, to delete used invites)
  */
-async function handleDeleteInvite(event, supabase) {
+async function handleDeleteInvite(event) {
   const params = event.queryStringParameters || {};
   const { id, allowUsed } = params;
 
@@ -113,7 +113,7 @@ async function handleDeleteInvite(event, supabase) {
   }
 
   try {
-    await deleteInvite(supabase, id, allowUsed === 'true');
+    await deleteInvite(id, allowUsed === 'true');
 
     return jsonResponse({
       success: true,

@@ -295,14 +295,15 @@ export async function createInvite(supabase, email, invitedBy) {
 
 /**
  * Delete an invite (admin only)
- * @param {object} supabase - Supabase client
+ * Uses service role client to bypass RLS
  * @param {string} inviteId - Invite ID
  * @param {boolean} allowUsed - Whether to allow deleting used invites
  */
-export async function deleteInvite(supabase, inviteId, allowUsed = false) {
-  if (!supabase) throw new Error('Supabase not configured');
+export async function deleteInvite(inviteId, allowUsed = false) {
+  const serviceClient = createServiceRoleClient();
+  if (!serviceClient) throw new Error('Service role not configured');
 
-  let query = supabase
+  let query = serviceClient
     .from('invites')
     .delete()
     .eq('id', inviteId);

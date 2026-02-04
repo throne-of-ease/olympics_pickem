@@ -16,7 +16,13 @@ export function PicksOverviewPage() {
   const { games, loading: gamesLoading, error: gamesError, refresh: refreshGames } = useGames();
   const { leaderboard, loading: lbLoading, error: lbError, refresh: refreshLb } = useLeaderboard();
   const { tournamentProgress, includeLiveGames, toggleIncludeLiveGames } = useApp();
-  const [design, setDesign] = useState('compact');
+  const [design, setDesign] = useState(() => {
+    // Default to cards on small screens for better mobile UX
+    if (typeof window !== 'undefined') {
+      return window.innerWidth < 480 ? 'cards' : 'compact';
+    }
+    return 'compact';
+  });
 
   const loading = gamesLoading || lbLoading;
   const error = gamesError || lbError;

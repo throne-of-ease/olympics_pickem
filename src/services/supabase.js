@@ -25,23 +25,36 @@ export function isSupabaseConfigured() {
  */
 export const auth = {
   /**
-   * Sign up with email and password
+   * Sign up with email and password via backend API
+   * Uses admin API to bypass email confirmation
    */
   async signUp(email, password, name) {
     if (!supabase) throw new Error('Supabase not configured');
 
-    // Sign up user
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { name }, // This gets picked up by the trigger
+    // Use backend API to register (bypasses email confirmation)
+    const response = await fetch('/.netlify/functions/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
       },
+      body: JSON.stringify({ email, password, name }),
     });
 
-    if (error) throw error;
+    const data = await response.json();
 
-    return data;
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to create account');
+    }
+
+    // After successful registration, sign in the user
+    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (signInError) throw signInError;
+
+    return signInData;
   },
 
   /**
@@ -343,18 +356,25 @@ export const invites = {
   },
 
   /**
-   * Delete an unused invite (admin only)
+   * Delete an unused invite via API (admin only)
    */
   async delete(inviteId) {
     if (!supabase) throw new Error('Supabase not configured');
 
-    const { error } = await supabase
-      .from('invites')
-      .delete()
-      .eq('id', inviteId)
-      .eq('used', false);
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) throw new Error('Not authenticated');
 
-    if (error) throw error;
+    const response = await fetch(`/.netlify/functions/invites?id=${inviteId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${session.access_token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const data = await response.json();
+      throw new Error(data.error || 'Failed to delete invite');
+    }
   },
 
   /**
