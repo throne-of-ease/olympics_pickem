@@ -25,25 +25,10 @@ export function isSupabaseConfigured() {
  */
 export const auth = {
   /**
-   * Sign up with email, password, and invite code
+   * Sign up with email and password
    */
-  async signUp(email, password, name, inviteCode) {
+  async signUp(email, password, name) {
     if (!supabase) throw new Error('Supabase not configured');
-
-    // Validate invite code first
-    const { data: inviteData, error: inviteError } = await supabase
-      .rpc('validate_invite_code', { code: inviteCode });
-
-    if (inviteError) throw inviteError;
-    if (!inviteData || inviteData.length === 0 || !inviteData[0].valid) {
-      throw new Error('Invalid or expired invite code');
-    }
-
-    // Check if invite email matches (if specified)
-    const invite = inviteData[0];
-    if (invite.email && invite.email.toLowerCase() !== email.toLowerCase()) {
-      throw new Error('This invite code was sent to a different email address');
-    }
 
     // Sign up user
     const { data, error } = await supabase.auth.signUp({
@@ -55,14 +40,6 @@ export const auth = {
     });
 
     if (error) throw error;
-
-    // Mark invite as used
-    if (data.user) {
-      await supabase.rpc('mark_invite_used', {
-        code: inviteCode,
-        user_uuid: data.user.id,
-      });
-    }
 
     return data;
   },

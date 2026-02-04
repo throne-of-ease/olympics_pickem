@@ -164,6 +164,15 @@
   color: var(--text-muted);
 }
 
+.points.negative {
+  color: var(--color-error);
+}
+
+.confidence {
+  color: var(--text-muted);
+  font-weight: normal;
+}
+
 .hidden {
   padding: var(--spacing-md);
   text-align: center;

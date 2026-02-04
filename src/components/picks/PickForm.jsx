@@ -1,11 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { format, parseISO, isPast } from 'date-fns';
 import { Button, Card, CountryFlag } from '../common';
+import { calculateBrierPoints } from '../../services/scoring';
+import scoringConfig from '../../../config/scoring.json';
 import styles from './PickForm.module.css';
 
 export function PickForm({ game, existingPick, onSubmit, onDelete, loading }) {
-  const [teamAScore, setTeamAScore] = useState('');
-  const [teamBScore, setTeamBScore] = useState('');
+  const [selectedTeam, setSelectedTeam] = useState(null); // 'team_a' or 'team_b'
   const [confidence, setConfidence] = useState(0.5);
   const [error, setError] = useState(null);
 
@@ -13,15 +14,36 @@ export function PickForm({ game, existingPick, onSubmit, onDelete, loading }) {
   const hasStarted = isPast(scheduledAt);
   const isEditing = !!existingPick;
 
+  // Derive selected team from existing pick scores
+  const getSelectedTeamFromPick = (pick) => {
+    if (!pick) return null;
+    const scoreA = pick.team_a_score;
+    const scoreB = pick.team_b_score;
+    if (scoreA > scoreB) return 'team_a';
+    if (scoreB > scoreA) return 'team_b';
+    // Legacy tie picks - user needs to re-select
+    return null;
+  };
+
+  // Calculate points preview based on selected team and confidence
+  const pointsPreview = useMemo(() => {
+    if (!selectedTeam) return null;
+    const roundMultiplier = scoringConfig.points[game.roundType || game.round_type || 'groupStage'] || 1;
+    const winPoints = calculateBrierPoints(true, confidence, roundMultiplier, scoringConfig);
+    const losePoints = calculateBrierPoints(false, confidence, roundMultiplier, scoringConfig);
+    const teamName = selectedTeam === 'team_a'
+      ? (game.team_a?.abbreviation || game.team_a?.name || 'Team A')
+      : (game.team_b?.abbreviation || game.team_b?.name || 'Team B');
+    return { teamName, winPoints, losePoints };
+  }, [selectedTeam, confidence, game]);
+
   // Initialize form with existing pick
   useEffect(() => {
     if (existingPick) {
-      setTeamAScore(existingPick.team_a_score?.toString() || '');
-      setTeamBScore(existingPick.team_b_score?.toString() || '');
+      setSelectedTeam(getSelectedTeamFromPick(existingPick));
       setConfidence(existingPick.confidence ?? 0.5);
     } else {
-      setTeamAScore('');
-      setTeamBScore('');
+      setSelectedTeam(null);
       setConfidence(0.5);
     }
   }, [existingPick, game.game_id]);
@@ -30,21 +52,24 @@ export function PickForm({ game, existingPick, onSubmit, onDelete, loading }) {
     e.preventDefault();
     setError(null);
 
-    const scoreA = parseInt(teamAScore, 10);
-    const scoreB = parseInt(teamBScore, 10);
-
-    if (isNaN(scoreA) || isNaN(scoreB)) {
-      setError('Please enter valid scores');
+    if (!selectedTeam) {
+      setError('Please select a winner');
       return;
     }
 
-    if (scoreA < 0 || scoreB < 0) {
-      setError('Scores cannot be negative');
-      return;
+    // Convert team selection to scores for storage
+    // These are representative scores - actual scoring uses Brier formula
+    let teamAScore, teamBScore;
+    if (selectedTeam === 'team_a') {
+      teamAScore = 1;
+      teamBScore = 0;
+    } else {
+      teamAScore = 0;
+      teamBScore = 1;
     }
 
     try {
-      await onSubmit(game.game_id, scoreA, scoreB, confidence);
+      await onSubmit(game.game_id, teamAScore, teamBScore, confidence);
     } catch (err) {
       setError(err.message || 'Failed to save pick');
     }
@@ -55,11 +80,16 @@ export function PickForm({ game, existingPick, onSubmit, onDelete, loading }) {
 
     try {
       await onDelete(game.game_id);
-      setTeamAScore('');
-      setTeamBScore('');
+      setSelectedTeam(null);
+      setConfidence(0.5);
     } catch (err) {
       setError(err.message || 'Failed to delete pick');
     }
+  };
+
+  const getTeamDisplayName = (teamKey) => {
+    const team = teamKey === 'team_a' ? game.team_a : game.team_b;
+    return team?.name || team?.abbreviation || 'TBD';
   };
 
   if (hasStarted) {
@@ -71,8 +101,11 @@ export function PickForm({ game, existingPick, onSubmit, onDelete, loading }) {
         </div>
         {existingPick && (
           <div className={styles.submittedPick}>
-            <div className={styles.submittedScore}>
-              Your pick: {existingPick.team_a_score} - {existingPick.team_b_score}
+            <div className={styles.submittedTeam}>
+              Your pick: {' '}
+              {getSelectedTeamFromPick(existingPick)
+                ? getTeamDisplayName(getSelectedTeamFromPick(existingPick))
+                : 'Not set'}
             </div>
             <div className={styles.submittedConfidence}>
               Confidence: {Math.round(existingPick.confidence * 100)}%
@@ -105,30 +138,24 @@ export function PickForm({ game, existingPick, onSubmit, onDelete, loading }) {
       <form onSubmit={handleSubmit} className={styles.form}>
         {error && <div className={styles.error}>{error}</div>}
 
-        <div className={styles.scores}>
-          <div className={styles.scoreInput}>
-            <label>{game.team_a?.abbreviation || 'A'}</label>
-            <input
-              type="number"
-              min="0"
-              max="99"
-              value={teamAScore}
-              onChange={(e) => setTeamAScore(e.target.value)}
-              placeholder="0"
-            />
-          </div>
-          <span className={styles.dash}>-</span>
-          <div className={styles.scoreInput}>
-            <label>{game.team_b?.abbreviation || 'B'}</label>
-            <input
-              type="number"
-              min="0"
-              max="99"
-              value={teamBScore}
-              onChange={(e) => setTeamBScore(e.target.value)}
-              placeholder="0"
-            />
-          </div>
+        <div className={styles.teamSelection}>
+          <button
+            type="button"
+            className={`${styles.teamButton} ${selectedTeam === 'team_a' ? styles.selected : ''}`}
+            onClick={() => setSelectedTeam('team_a')}
+          >
+            <CountryFlag team={game.team_a} size="medium" />
+            <span className={styles.teamButtonName}>{game.team_a?.abbreviation || game.team_a?.name || 'A'}</span>
+          </button>
+
+          <button
+            type="button"
+            className={`${styles.teamButton} ${selectedTeam === 'team_b' ? styles.selected : ''}`}
+            onClick={() => setSelectedTeam('team_b')}
+          >
+            <CountryFlag team={game.team_b} size="medium" />
+            <span className={styles.teamButtonName}>{game.team_b?.abbreviation || game.team_b?.name || 'B'}</span>
+          </button>
         </div>
 
         <div className={styles.confidenceSection}>
@@ -148,10 +175,26 @@ export function PickForm({ game, existingPick, onSubmit, onDelete, loading }) {
             <span>Toss-up (50%)</span>
             <span>Certain (100%)</span>
           </div>
+          <div className={styles.confidenceHint}>
+            Higher confidence = more points if correct, but more penalty if wrong
+          </div>
         </div>
 
+        {pointsPreview && (
+          <div className={styles.pointsPreview}>
+            <div className={styles.previewRow}>
+              <span>If {pointsPreview.teamName} wins:</span>
+              <span className={styles.winPoints}>+{pointsPreview.winPoints} pts</span>
+            </div>
+            <div className={styles.previewRow}>
+              <span>If {pointsPreview.teamName} loses:</span>
+              <span className={styles.losePoints}>{pointsPreview.losePoints} pts</span>
+            </div>
+          </div>
+        )}
+
         <div className={styles.actions}>
-          <Button type="submit" loading={loading} size="small">
+          <Button type="submit" loading={loading} size="small" disabled={!selectedTeam}>
             {isEditing ? 'Update Pick' : 'Submit Pick'}
           </Button>
           {isEditing && (

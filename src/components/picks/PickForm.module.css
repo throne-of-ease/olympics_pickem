@@ -47,66 +47,124 @@
   text-align: center;
 }
 
-.scores {
+/* Team Selection Styles */
+.teamSelection {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   justify-content: center;
-  gap: var(--spacing-md);
+  gap: var(--spacing-sm);
 }
 
-.scoreInput {
+.teamButton {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: var(--spacing-xs);
-}
-
-.scoreInput label {
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  color: var(--text-secondary);
-}
-
-.scoreInput input {
-  width: 60px;
-  height: 50px;
-  text-align: center;
-  font-size: var(--font-size-xl);
-  font-weight: 600;
+  padding: var(--spacing-md);
+  min-width: 90px;
+  background: var(--bg-secondary);
   border: 2px solid var(--border-color);
   border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.teamButton:hover {
+  border-color: var(--color-primary);
   background: var(--bg-primary);
+}
+
+.teamButton.selected {
+  border-color: var(--color-primary);
+  background: rgba(var(--color-primary-rgb, 37, 99, 235), 0.1);
+  box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb, 37, 99, 235), 0.2);
+}
+
+.teamButtonName {
+  font-weight: 600;
+  font-size: var(--font-size-sm);
   color: var(--text-primary);
 }
 
-.scoreInput input:focus {
-  outline: none;
+.tieButton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-md);
+  min-width: 70px;
+  background: var(--bg-secondary);
+  border: 2px solid var(--border-color);
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.tieButton:hover {
   border-color: var(--color-primary);
+  background: var(--bg-primary);
 }
 
-.scoreInput input::-webkit-inner-spin-button,
-.scoreInput input::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
+.tieButton.selected {
+  border-color: var(--color-primary);
+  background: rgba(var(--color-primary-rgb, 37, 99, 235), 0.1);
+  box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb, 37, 99, 235), 0.2);
+  color: var(--text-primary);
 }
 
-.scoreInput input[type='number'] {
-  -moz-appearance: textfield;
+.tieIcon {
+  font-size: var(--font-size-xl);
 }
 
-.dash {
-  font-size: var(--font-size-2xl);
+/* Confidence Section */
+.confidenceSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  margin: var(--spacing-sm) 0;
+}
+
+.confidenceLabel {
+  font-size: var(--font-size-sm);
   font-weight: 600;
-  color: var(--text-muted);
-  margin-top: var(--spacing-lg);
+  color: var(--text-secondary);
+  text-align: center;
 }
 
+.slider {
+  width: 100%;
+  cursor: pointer;
+  accent-color: var(--color-primary);
+}
+
+.sliderLabels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.confidenceHint {
+  text-align: center;
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  font-style: italic;
+  margin-top: var(--spacing-xs);
+}
+
+/* Actions */
 .actions {
   display: flex;
   justify-content: center;
   gap: var(--spacing-sm);
 }
 
+/* Locked State */
 .locked {
   display: flex;
   align-items: center;
@@ -132,7 +190,7 @@
   color: var(--text-secondary);
 }
 
-.submittedScore {
+.submittedTeam {
   font-weight: 600;
   margin-bottom: 4px;
 }
@@ -142,32 +200,36 @@
   color: var(--text-muted);
 }
 
-.confidenceSection {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
-  margin: var(--spacing-sm) 0;
+/* Points Preview */
+.pointsPreview {
+  background: var(--color-gray-50);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-sm) var(--spacing-md);
+  margin-top: var(--spacing-xs);
 }
 
-.confidenceLabel {
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  color: var(--text-secondary);
-  text-align: center;
-}
-
-.slider {
-  width: 100%;
-  cursor: pointer;
-}
-
-.sliderLabels {
+.previewRow {
   display: flex;
   justify-content: space-between;
-  font-size: 10px;
-  color: var(--text-muted);
+  padding: var(--spacing-xs) 0;
+  font-size: var(--font-size-sm);
 }
 
+.previewRow:first-child {
+  border-bottom: 1px solid var(--border-color);
+}
+
+.winPoints {
+  font-weight: 700;
+  color: var(--color-success);
+}
+
+.losePoints {
+  font-weight: 700;
+  color: var(--color-error);
+}
+
+/* Dark mode */
 @media (prefers-color-scheme: dark) {
   .locked {
     background-color: var(--color-gray-800);
@@ -175,5 +237,33 @@
 
   .submittedPick {
     background-color: var(--color-gray-800);
+  }
+
+  .pointsPreview {
+    background: var(--color-gray-800);
+  }
+
+  .teamButton {
+    background: var(--color-gray-800);
+  }
+
+  .teamButton:hover {
+    background: var(--color-gray-700);
+  }
+
+  .teamButton.selected {
+    background: rgba(var(--color-primary-rgb, 37, 99, 235), 0.2);
+  }
+}
+
+/* Mobile responsiveness */
+@media (max-width: 400px) {
+  .teamSelection {
+    flex-wrap: wrap;
+  }
+
+  .teamButton {
+    flex: 1;
+    min-width: 80px;
   }
 }

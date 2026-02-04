@@ -334,6 +334,8 @@ function PickDisplay({ pick, game, variant }) {
   const isProvisional = pick.isProvisional;
   const predictedWinner = pick.predictedResult === 'win_a' ? game.team_a :
                           pick.predictedResult === 'win_b' ? game.team_b : null;
+  const confidence = pick.confidence ?? 0.5;
+  const confidencePercent = Math.round(confidence * 100);
 
   const baseClass = variant === 'compact' ? styles.pickCompact :
                     variant === 'card' ? styles.pickCard :
@@ -353,13 +355,27 @@ function PickDisplay({ pick, game, variant }) {
 
   const getAbbrev = (team) => team?.abbreviation || team?.name?.slice(0, 3).toUpperCase() || '?';
 
+  // Format points: show + for positive, just the number for negative/zero
+  const formatPoints = (points) => {
+    if (points > 0) return `+${points}`;
+    return points.toString();
+  };
+
   if (variant === 'compact') {
     return (
-      <div className={`${baseClass} ${resultClass}`}>
-        {predictedWinner ? (
-          <span className={styles.pickAbbrev}>{getAbbrev(predictedWinner)}</span>
-        ) : (
-          <span className={styles.pickTie}>TIE</span>
+      <div className={`${baseClass} ${resultClass}`} title={`${confidencePercent}% confidence`}>
+        <div className={styles.pickContent}>
+          {predictedWinner ? (
+            <span className={styles.pickAbbrev}>{getAbbrev(predictedWinner)}</span>
+          ) : (
+            <span className={styles.pickTie}>TIE</span>
+          )}
+          <span className={styles.pickConfidence}>{confidencePercent}%</span>
+        </div>
+        {canShowPoints && (
+          <span className={`${styles.pickPoints} ${pick.pointsEarned < 0 ? styles.negative : ''}`}>
+            {formatPoints(pick.pointsEarned)}
+          </span>
         )}
       </div>
     );
@@ -368,12 +384,13 @@ function PickDisplay({ pick, game, variant }) {
   if (variant === 'card') {
     return (
       <div className={`${baseClass} ${resultClass}`}>
-        <span className={styles.cardPickScore}>
-          {pick.predictedScoreA} - {pick.predictedScoreB}
+        <span className={styles.cardPickTeam}>
+          {predictedWinner ? getAbbrev(predictedWinner) : 'TIE'}
         </span>
+        <span className={styles.cardPickConfidence}>{confidencePercent}%</span>
         {canShowPoints && (
-          <span className={styles.cardPickPoints}>
-            {pick.pointsEarned > 0 ? `+${pick.pointsEarned}` : '0'}
+          <span className={`${styles.cardPickPoints} ${pick.pointsEarned < 0 ? styles.negative : ''}`}>
+            {formatPoints(pick.pointsEarned)}
           </span>
         )}
       </div>
@@ -382,13 +399,21 @@ function PickDisplay({ pick, game, variant }) {
 
   // timeline
   return (
-    <div className={`${baseClass} ${resultClass}`}>
-      {predictedWinner?.logo && (
-        <img src={predictedWinner.logo} alt="" className={styles.timelinePickLogo} />
-      )}
-      {!predictedWinner && <span className={styles.timelineTie}>T</span>}
-      {canShowPoints && pick.pointsEarned > 0 && (
-        <span className={styles.timelinePoints}>+{pick.pointsEarned}</span>
+    <div className={`${baseClass} ${resultClass}`} title={`${confidencePercent}% confidence`}>
+      <div className={styles.timelinePickContent}>
+        {predictedWinner?.logo ? (
+          <img src={predictedWinner.logo} alt="" className={styles.timelinePickLogo} />
+        ) : predictedWinner ? (
+          <span className={styles.timelinePickAbbrev}>{getAbbrev(predictedWinner)}</span>
+        ) : (
+          <span className={styles.timelineTie}>T</span>
+        )}
+        <span className={styles.timelineConfidence}>{confidencePercent}%</span>
+      </div>
+      {canShowPoints && (
+        <span className={`${styles.timelinePoints} ${pick.pointsEarned < 0 ? styles.negative : ''}`}>
+          {formatPoints(pick.pointsEarned)}
+        </span>
       )}
     </div>
   );

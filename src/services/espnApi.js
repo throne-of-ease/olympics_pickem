@@ -101,7 +101,7 @@ function parseScheduleResponse(data) {
       shortName: event.shortName,
       scheduledAt: event.date,
       status: parseGameStatus(competition.status),
-      roundType: parseRoundType(event.season?.type?.name, event.name),
+      roundType: parseRoundType(event.season?.type?.name, event.name, event.date),
       venue: competition.venue?.fullName,
       teamA: awayTeam ? parseTeam(awayTeam) : null,
       teamB: homeTeam ? parseTeam(homeTeam) : null,
@@ -158,19 +158,37 @@ function parseGameStatus(status) {
 }
 
 /**
- * Determine round type from season type or event name
+ * Determine round type from season type, event name, or date
+ * @param {string} seasonTypeName - Season type name from ESPN
+ * @param {string} eventName - Event name from ESPN
+ * @param {string} scheduledDate - ISO date string of the game
+ * @returns {'groupStage' | 'knockoutRound' | 'medalRound'}
  */
-function parseRoundType(seasonTypeName, eventName) {
+function parseRoundType(seasonTypeName, eventName, scheduledDate) {
   const name = (seasonTypeName || eventName || '').toLowerCase();
 
+  // Medal keywords (highest priority)
   if (name.includes('gold') || name.includes('bronze')) {
     return 'medalRound';
   }
+
+  // Explicit knockout keywords
   if (name.includes('semifinal') || name.includes('quarterfinal') || name.includes('knockout')) {
     return 'knockoutRound';
   }
+
+  // Explicit group stage keywords
   if (name.includes('group')) {
     return 'groupStage';
+  }
+
+  // Date-based fallback: games after Feb 15, 2026 are knockout rounds
+  if (scheduledDate) {
+    const gameDate = new Date(scheduledDate);
+    const knockoutStart = new Date('2026-02-16T00:00:00Z');
+    if (gameDate >= knockoutStart) {
+      return 'knockoutRound';
+    }
   }
 
   return 'groupStage';

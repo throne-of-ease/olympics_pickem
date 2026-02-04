@@ -1,146 +1,54 @@
+import {
+  calculatePickScore,
+  calculatePlayerScore,
+  calculateLeaderboard as calculateFullLeaderboard,
+  getResult,
+} from './scoring.js';
+import scoringConfig from '../../config/scoring.json';
+
 /**
  * Client-side leaderboard calculation
  * Calculates player scores from games and picks data
  */
-
-// Default scoring config
-const DEFAULT_SCORING_CONFIG = {
-  points: { groupStage: 1, knockoutRound: 2, medalRound: 3 },
-  exactScoreBonus: { enabled: false, points: 1 }
-};
-
-/**
- * Calculate game result from scores
- */
-function getResult(scoreA, scoreB) {
-  if (scoreA === null || scoreA === undefined || scoreB === null || scoreB === undefined) return null;
-  if (scoreA > scoreB) return 'win_a';
-  if (scoreB > scoreA) return 'win_b';
-  return 'tie';
-}
 
 /**
  * Calculate leaderboard from games and picks data
  * @param {Array} games - Array of game objects from ESPN
  * @param {Array} picks - Array of pick objects from Supabase (getAllVisible)
  * @param {Array} profiles - Array of profile objects from Supabase
- * @param {Object} scoringConfig - Optional scoring configuration
  * @param {Object} options - Optional calculation options
  * @param {boolean} options.includeLiveGames - Include in-progress games in scoring (default: false)
  * @returns {Array} Sorted leaderboard with player rankings
  */
-export function calculateLeaderboard(games, picks, profiles, scoringConfig = DEFAULT_SCORING_CONFIG, options = {}) {
+export function calculateLeaderboard(games, picks, profiles, options = {}) {
   const { includeLiveGames = false } = options;
-  // Build game lookup by ESPN event ID
-  const gameMap = new Map(games.map(g => [g.espnEventId || g.id, g]));
 
-  // Group picks by user_id
-  const picksByUser = {};
-  for (const pick of picks) {
-    const userId = pick.user_id;
-    if (!picksByUser[userId]) {
-      picksByUser[userId] = [];
-    }
-
-    const teamAScore = pick.team_a_score ?? 0;
-    const teamBScore = pick.team_b_score ?? 0;
-
-    picksByUser[userId].push({
-      gameId: pick.game_id,
-      teamAScore,
-      teamBScore,
-      predictedResult: getResult(teamAScore, teamBScore),
-    });
-  }
-
-  // Calculate scores for each player
-  const leaderboard = profiles.map((profile, index) => {
-    const userPicks = picksByUser[profile.id] || [];
-    let totalPoints = 0;
-    let correctPicks = 0;
-    let scoredGames = 0;
-
-    const roundBreakdown = {
-      groupStage: { correct: 0, total: 0, points: 0 },
-      knockoutRound: { correct: 0, total: 0, points: 0 },
-      medalRound: { correct: 0, total: 0, points: 0 },
-    };
-
-    for (const pick of userPicks) {
-      const game = gameMap.get(pick.gameId);
-
-      // Skip games that aren't scoreable yet
-      const isFinal = game?.status?.state === 'final';
-      const isInProgress = game?.status?.state === 'in_progress';
-      const canScore = isFinal || (includeLiveGames && isInProgress);
-
-      if (!game || !canScore) continue;
-
-      scoredGames++;
-      const roundType = game.roundType || game.round_type || 'groupStage';
-      const basePoints = scoringConfig.points[roundType] || 1;
-
-      // Determine actual result
-      const actualResult = getResult(game.scores?.teamA || game.score_a, game.scores?.teamB || game.score_b);
-      const isCorrect = pick.predictedResult === actualResult;
-
-      if (roundBreakdown[roundType]) {
-        roundBreakdown[roundType].total++;
-      }
-
-      if (isCorrect) {
-        correctPicks++;
-        totalPoints += basePoints;
-
-        if (roundBreakdown[roundType]) {
-          roundBreakdown[roundType].correct++;
-          roundBreakdown[roundType].points += basePoints;
-        }
-
-        // Check exact score bonus
-        if (scoringConfig.exactScoreBonus?.enabled) {
-          const gameScoreA = game.scores?.teamA || game.score_a;
-          const gameScoreB = game.scores?.teamB || game.score_b;
-          if (pick.teamAScore === gameScoreA && pick.teamBScore === gameScoreB) {
-            totalPoints += scoringConfig.exactScoreBonus.points;
-            if (roundBreakdown[roundType]) {
-              roundBreakdown[roundType].points += scoringConfig.exactScoreBonus.points;
-            }
-          }
-        }
-      }
-    }
-
+  // Transform raw picks into a format usable by calculatePlayerScore
+  const transformedPlayers = profiles.map(profile => {
+    const userPicks = picks.filter(p => p.user_id === profile.id).map(p => ({
+      gameId: p.game_id,
+      teamAScore: p.team_a_score,
+      teamBScore: p.team_b_score,
+      confidence: p.confidence,
+      predictedResult: getResult(p.team_a_score, p.team_b_score),
+    }));
     return {
-      playerId: profile.id,
-      playerName: profile.name || profile.email || 'Unknown Player',
-      displayOrder: index + 1,
-      totalPoints,
-      correctPicks,
-      totalPicks: userPicks.length,
-      scoredGames,
-      accuracy: scoredGames > 0 ? ((correctPicks / scoredGames) * 100).toFixed(1) : '0.0',
-      roundBreakdown,
+      id: profile.id,
+      name: profile.name,
+      displayOrder: profile.display_order,
+      picks: userPicks,
     };
   });
 
-  // Sort leaderboard by points, then correct picks, then name
-  leaderboard.sort((a, b) => {
-    if (b.totalPoints !== a.totalPoints) return b.totalPoints - a.totalPoints;
-    if (b.correctPicks !== a.correctPicks) return b.correctPicks - a.correctPicks;
-    return a.playerName.localeCompare(b.playerName);
+  // Filter games based on includeLiveGames
+  const scoreableGames = games.filter(game => {
+    const isFinal = game?.status?.state === 'final';
+    const isInProgress = game?.status?.state === 'in_progress';
+    return isFinal || (includeLiveGames && isInProgress);
   });
 
-  // Add ranks
-  let currentRank = 1;
-  for (let i = 0; i < leaderboard.length; i++) {
-    if (i > 0 && leaderboard[i].totalPoints < leaderboard[i - 1].totalPoints) {
-      currentRank = i + 1;
-    }
-    leaderboard[i].rank = currentRank;
-  }
-
-  return leaderboard;
+  // Use the main calculateLeaderboard function from scoring.js
+  return calculateFullLeaderboard(transformedPlayers, scoreableGames, scoringConfig);
 }
 
 /**
@@ -148,35 +56,29 @@ export function calculateLeaderboard(games, picks, profiles, scoringConfig = DEF
  * @param {Array} games - Array of game objects from ESPN
  * @param {Array} picks - Array of pick objects from Supabase (getAllVisible)
  * @param {Array} profiles - Array of profile objects from Supabase
- * @param {Object} scoringConfig - Optional scoring configuration
  * @param {Object} options - Optional enrichment options
  * @param {boolean} options.includeLiveGames - Include in-progress games in scoring (default: false)
  * @returns {Array} Games enriched with pick information
  */
-export function enrichGamesWithPicks(games, picks, profiles = [], scoringConfig = DEFAULT_SCORING_CONFIG, options = {}) {
+export function enrichGamesWithPicks(games, picks, profiles = [], options = {}) {
   const { includeLiveGames = false } = options;
   // Build profile lookup by user ID
   const profileMap = new Map(profiles.map(p => [p.id, p]));
 
-  // Create a lookup of picks by game ID
-  const picksByGame = {};
+  // Create a lookup of picks by game ID and player for quick access
+  const picksByGameAndPlayer = {};
   for (const pick of picks) {
     const gameId = pick.game_id;
-    if (!picksByGame[gameId]) {
-      picksByGame[gameId] = [];
+    const userId = pick.user_id;
+    if (!picksByGameAndPlayer[gameId]) {
+      picksByGameAndPlayer[gameId] = {};
     }
-
-    const teamAScore = pick.team_a_score ?? 0;
-    const teamBScore = pick.team_b_score ?? 0;
-    const profile = profileMap.get(pick.user_id);
-
-    picksByGame[gameId].push({
-      playerId: pick.user_id,
-      playerName: profile?.name || 'Unknown',
-      teamAScore,
-      teamBScore,
-      predictedResult: getResult(teamAScore, teamBScore),
-    });
+    picksByGameAndPlayer[gameId][userId] = {
+      teamAScore: pick.team_a_score ?? 0,
+      teamBScore: pick.team_b_score ?? 0,
+      confidence: pick.confidence ?? 0.5,
+      predictedResult: getResult(pick.team_a_score, pick.team_b_score),
+    };
   }
 
   const now = new Date();
@@ -186,10 +88,44 @@ export function enrichGamesWithPicks(games, picks, profiles = [], scoringConfig 
     const isFinal = game.status?.state === 'final';
     const isInProgress = game.status?.state === 'in_progress';
     const gameStarted = new Date(game.scheduledAt) <= now || isFinal || isInProgress;
-    const gamePicks = picksByGame[gameId] || [];
+    const gamePicks = picksByGameAndPlayer[gameId] || {};
     const actualResult = getResult(game.scores?.teamA, game.scores?.teamB);
-    const roundType = game.roundType || 'groupStage';
-    const basePoints = scoringConfig.points[roundType] || 1;
+
+    const enrichedPicks = [];
+    // Iterate through all profiles to ensure all players are represented,
+    // even if they didn't pick for this specific game
+    profiles.forEach(profile => {
+      const pickForPlayer = gamePicks[profile.id];
+      if (pickForPlayer) {
+        // If a pick exists, calculate its score using calculatePickScore
+        const pickScoreResult = calculatePickScore(
+          { ...pickForPlayer, gameId: gameId }, // Ensure pick has gameId
+          { ...game, id: gameId }, // Ensure game has id
+          scoringConfig // Pass the global scoring config
+        );
+
+        enrichedPicks.push({
+          playerId: profile.id,
+          playerName: profile.name,
+          predictedScoreA: pickForPlayer.teamAScore,
+          predictedScoreB: pickForPlayer.teamBScore,
+          predictedResult: pickForPlayer.predictedResult,
+          confidence: pickForPlayer.confidence,
+          isCorrect: pickScoreResult.isCorrect,
+          isProvisional: includeLiveGames && isInProgress && !isFinal,
+          pointsEarned: pickScoreResult.totalPoints,
+        });
+      } else if (gameStarted) {
+        // If game started but no pick, show submitted status
+        enrichedPicks.push({
+          playerId: profile.id,
+          playerName: profile.name,
+          submitted: false,
+          isProvisional: includeLiveGames && isInProgress && !isFinal,
+          pointsEarned: 0,
+        });
+      }
+    });
 
     return {
       id: gameId,
@@ -206,30 +142,9 @@ export function enrichGamesWithPicks(games, picks, profiles = [], scoringConfig 
       result: actualResult,
       team_a: game.teamA,
       team_b: game.teamB,
-      picks: gameStarted
-        ? gamePicks.map(p => {
-            const canScore = isFinal || (includeLiveGames && isInProgress);
-            const isCorrect = canScore && actualResult && p.predictedResult === actualResult;
-            const isProvisional = includeLiveGames && isInProgress && !isFinal;
-            const pointsEarned = isCorrect ? basePoints : 0;
-            return {
-              playerId: p.playerId,
-              playerName: p.playerName,
-              predictedScoreA: p.teamAScore,
-              predictedScoreB: p.teamBScore,
-              predictedResult: p.predictedResult,
-              isCorrect,
-              isProvisional,
-              pointsEarned,
-            };
-          })
-        : gamePicks.map(p => ({
-            playerId: p.playerId,
-            playerName: p.playerName,
-            submitted: true,
-          })),
+      picks: gameStarted ? enrichedPicks : [], // Only show picks if game has started
       picksVisible: gameStarted,
-      hasAllPicks: gamePicks.length > 0,
+      hasAllPicks: Object.keys(gamePicks).length > 0,
     };
   });
 }

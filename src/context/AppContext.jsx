@@ -136,7 +136,6 @@ export function AppProvider({ children }) {
         espnGames,
         visiblePicks,
         allProfiles,
-        undefined,
         { includeLiveGames }
       );
 
@@ -145,7 +144,6 @@ export function AppProvider({ children }) {
         espnGames,
         visiblePicks,
         allProfiles,
-        undefined,
         { includeLiveGames }
       );
 

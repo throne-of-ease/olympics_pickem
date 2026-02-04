@@ -9,10 +9,8 @@ export function RegisterPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [inviteCode, setInviteCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(false);
 
   const { signUp, isConfigured } = useAuth();
   const navigate = useNavigate();
@@ -32,16 +30,11 @@ export function RegisterPage() {
       return;
     }
 
-    if (!inviteCode.trim()) {
-      setError('Invite code is required');
-      return;
-    }
-
     setLoading(true);
 
     try {
-      await signUp(email, password, name, inviteCode.trim().toUpperCase());
-      setSuccess(true);
+      await signUp(email, password, name);
+      navigate('/');
     } catch (err) {
       setError(err.message || 'Failed to create account');
     } finally {
@@ -63,27 +56,6 @@ export function RegisterPage() {
     );
   }
 
-  if (success) {
-    return (
-      <div className={styles.container}>
-        <Card className={styles.card}>
-          <div className={styles.header}>
-            <h1>Check Your Email</h1>
-            <p>
-              We've sent a confirmation link to <strong>{email}</strong>.
-              Please check your email and click the link to activate your account.
-            </p>
-          </div>
-          <div className={styles.footer}>
-            <Link to="/login" className={styles.link}>
-              Back to Sign In
-            </Link>
-          </div>
-        </Card>
-      </div>
-    );
-  }
-
   return (
     <div className={styles.container}>
       <Card className={styles.card}>
@@ -94,21 +66,6 @@ export function RegisterPage() {
 
         <form onSubmit={handleSubmit} className={styles.form}>
           {error && <div className={styles.error}>{error}</div>}
-
-          <div className={styles.field}>
-            <label htmlFor="inviteCode">Invite Code</label>
-            <input
-              id="inviteCode"
-              type="text"
-              value={inviteCode}
-              onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
-              placeholder="Enter your invite code"
-              required
-              autoComplete="off"
-              className={styles.inviteInput}
-            />
-            <span className={styles.hint}>Ask an admin for an invite code</span>
-          </div>
 
           <div className={styles.field}>
             <label htmlFor="name">Display Name</label>

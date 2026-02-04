@@ -81,16 +81,26 @@ function TeamDisplay({ team, score, isWinner, showScore }) {
 function PredictionRow({ pick, game }) {
   const isFinal = game.status === 'final';
   const isCorrect = pick.isCorrect;
+  const hasConfidence = pick.confidence !== undefined && pick.confidence !== null;
+
+  // Format points: show + for positive, just the number for negative/zero
+  const formatPoints = (points) => {
+    if (points > 0) return `+${points}`;
+    return points.toString();
+  };
 
   return (
     <div className={`${styles.pickRow} ${isFinal ? (isCorrect ? styles.correct : styles.incorrect) : ''}`}>
       <span className={styles.playerName}>{pick.playerName}</span>
       <span className={styles.prediction}>
         {pick.predictedScoreA} - {pick.predictedScoreB}
+        {hasConfidence && (
+          <small className={styles.confidence}> ({Math.round(pick.confidence * 100)}%)</small>
+        )}
       </span>
       {isFinal && (
-        <span className={styles.points}>
-          {pick.pointsEarned > 0 ? `+${pick.pointsEarned}` : '0'}
+        <span className={`${styles.points} ${pick.pointsEarned < 0 ? styles.negative : ''}`}>
+          {formatPoints(pick.pointsEarned)}
         </span>
       )}
     </div>

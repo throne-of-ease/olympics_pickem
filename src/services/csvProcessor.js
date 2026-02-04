@@ -77,12 +77,14 @@ function parsePickRow(row, rowNum) {
   if (isNaN(confidence)) {
     confidence = 0.5;
   } else if (confidence >= 50 && confidence <= 100) {
+    // Interpret values like 75 as 75% -> 0.75
     confidence = confidence / 100;
   } else if (confidence > 1 && confidence < 50) {
-    confidence = 1.0;
+    // Values like 1.5 or 30 are ambiguous edge cases
+    // Treat as out-of-range and will be clamped below
   }
-  
-  // Ensure it's in the 0.5 to 1.0 range
+
+  // Ensure it's in the 0.5 to 1.0 range (minimum 50% confidence)
   confidence = Math.max(0.5, Math.min(1.0, confidence));
 
   return {
