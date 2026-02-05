@@ -5,6 +5,7 @@ import { useLeaderboard } from '../hooks/useLeaderboard';
 import { useApp } from '../context/AppContext';
 import { Button, CountryFlag, Loading } from '../components/common';
 import { usePolling } from '../hooks/usePolling';
+import { getTeamFlagFromObject } from '../utils/countryFlags';
 import styles from './PicksOverviewPage.module.css';
 
 const DESIGN_OPTIONS = [
@@ -142,6 +143,9 @@ function CompactTableView({ games, players }) {
                   <span className={`${styles.playerPoints} ${idx === 0 ? styles.leader : ''}`}>
                     {formatPoints(player.totalPoints)}
                   </span>
+                  {idx === 0 && (
+                    <span className={styles.leaderLabel}>Leader</span>
+                  )}
                   {idx > 0 && (
                     <span className={styles.pointsDiff}>
                       {formatPoints(player.totalPoints - players[0].totalPoints)}
@@ -332,7 +336,7 @@ function TeamBadge({ team, isWinner, showName = false, showFlag = false }) {
   return (
     <div className={`${styles.teamBadge} ${isWinner ? styles.winnerBadge : ''}`}>
       {showFlag && <CountryFlag team={team} size="small" />}
-      {team.logo && (
+      {!showFlag && team.logo && (
         <img src={team.logo} alt="" className={styles.teamLogo} />
       )}
       {showName && <span className={styles.teamNameBadge}>{team.abbreviation || team.name?.slice(0, 3).toUpperCase()}</span>}
@@ -347,6 +351,7 @@ function PickDisplay({ pick, game, variant }) {
   const isProvisional = pick.isProvisional;
   const predictedWinner = pick.predictedResult === 'win_a' ? game.team_a :
                           pick.predictedResult === 'win_b' ? game.team_b : null;
+  const hasFlag = predictedWinner ? !!getTeamFlagFromObject(predictedWinner) : false;
   const confidence = pick.confidence ?? 0.5;
   const confidencePercent = Math.round(confidence * 100);
 
@@ -376,7 +381,13 @@ function PickDisplay({ pick, game, variant }) {
       <div className={`${baseClass} ${resultClass}`} title={`${confidencePercent}% confidence`}>
         <div className={styles.pickContent}>
           {predictedWinner ? (
-            <span className={styles.pickAbbrev}>{getAbbrev(predictedWinner)}</span>
+            <>
+              {hasFlag ? (
+                <CountryFlag team={predictedWinner} size="small" className={styles.pickFlag} />
+              ) : (
+                <span className={styles.pickAbbrev}>{getAbbrev(predictedWinner)}</span>
+              )}
+            </>
           ) : (
             <span className={styles.pickTie}>TIE</span>
           )}
@@ -394,9 +405,17 @@ function PickDisplay({ pick, game, variant }) {
   if (variant === 'card') {
     return (
       <div className={`${baseClass} ${resultClass}`}>
-        <span className={styles.cardPickTeam}>
-          {predictedWinner ? getAbbrev(predictedWinner) : 'TIE'}
-        </span>
+        {predictedWinner ? (
+          <>
+            {hasFlag ? (
+              <CountryFlag team={predictedWinner} size="small" className={styles.cardPickFlag} />
+            ) : (
+              <span className={styles.cardPickTeam}>{getAbbrev(predictedWinner)}</span>
+            )}
+          </>
+        ) : (
+          <span className={styles.cardPickTeam}>TIE</span>
+        )}
         <span className={styles.cardPickConfidence}>{confidencePercent}%</span>
         {canShowPoints && (
           <span className={`${styles.cardPickPoints} ${pick.pointsEarned < 0 ? styles.negative : ''}`}>
@@ -410,15 +429,19 @@ function PickDisplay({ pick, game, variant }) {
   // timeline
   return (
     <div className={`${baseClass} ${resultClass}`} title={`${confidencePercent}% confidence`}>
+      <span className={styles.timelineConfidence}>{confidencePercent}%</span>
       <div className={styles.timelinePickContent}>
-        {predictedWinner?.logo ? (
-          <img src={predictedWinner.logo} alt="" className={styles.timelinePickLogo} />
-        ) : predictedWinner ? (
-          <span className={styles.timelinePickAbbrev}>{getAbbrev(predictedWinner)}</span>
+        {predictedWinner ? (
+          <>
+            {hasFlag ? (
+              <CountryFlag team={predictedWinner} size="small" className={styles.timelinePickFlag} />
+            ) : (
+              <span className={styles.timelinePickAbbrev}>{getAbbrev(predictedWinner)}</span>
+            )}
+          </>
         ) : (
           <span className={styles.timelineTie}>T</span>
         )}
-        <span className={styles.timelineConfidence}>{confidencePercent}%</span>
       </div>
       {canShowPoints && (
         <span className={`${styles.timelinePoints} ${pick.pointsEarned < 0 ? styles.negative : ''}`}>
