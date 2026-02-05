@@ -1,5 +1,6 @@
 .card {
   padding: var(--spacing-sm) var(--spacing-md);
+  position: relative;
 }
 
 .time {
@@ -118,6 +119,73 @@
   text-align: center;
   font-size: var(--font-size-xs);
   color: var(--text-muted);
+}
+
+.iconCluster {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.savedGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--color-success);
+}
+
+.savedIcon {
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.savedIcon svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
+.savedLabel {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.iconButton {
+  width: 20px;
+  height: 20px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.iconButton svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+}
+
+.iconButton:hover:not(:disabled) {
+  color: var(--color-error);
+}
+
+.iconButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 /* Locked State */

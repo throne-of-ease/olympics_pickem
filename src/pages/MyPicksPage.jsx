@@ -83,17 +83,14 @@ export function MyPicksPage() {
     return filtered;
   }, [games, filter, getPickForGame]);
 
-  // Stats
   const stats = useMemo(() => {
-    const total = games?.length || 0;
-    const picked = myPicks.length;
     const upcoming = games?.filter((g) => isFuture(parseISO(g.scheduled_at))).length || 0;
     const unpicked = upcoming - myPicks.filter(p => {
       const game = games?.find(g => g.game_id === p.game_id);
       return game && isFuture(parseISO(game.scheduled_at));
     }).length;
 
-    return { total, picked, upcoming, unpicked };
+    return { unpicked };
   }, [games, myPicks]);
 
   // Submit pick
@@ -173,21 +170,6 @@ export function MyPicksPage() {
           You have {stats.unpicked} upcoming game{stats.unpicked !== 1 ? 's' : ''} without predictions
         </div>
       )}
-
-      <div className={styles.stats}>
-        <div className={styles.stat}>
-          <span className={styles.statValue}>{stats.picked}</span>
-          <span className={styles.statLabel}>Picks Made</span>
-        </div>
-        <div className={styles.stat}>
-          <span className={styles.statValue}>{stats.upcoming}</span>
-          <span className={styles.statLabel}>Upcoming Games</span>
-        </div>
-        <div className={styles.stat}>
-          <span className={styles.statValue}>{stats.total}</span>
-          <span className={styles.statLabel}>Total Games</span>
-        </div>
-      </div>
 
       <div className={styles.filters}>
         <Button

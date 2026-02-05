@@ -9,12 +9,16 @@ export function PickForm({ game, existingPick, onSubmit, onDelete, loading }) {
   const [selectedTeam, setSelectedTeam] = useState(null); // 'team_a' or 'team_b'
   const [confidence, setConfidence] = useState(0.5);
   const [error, setError] = useState(null);
-  const [autoSaveStatus, setAutoSaveStatus] = useState('idle');
+  const [saveStatus, setSaveStatus] = useState('idle');
+  const [hasInteractedConfidence, setHasInteractedConfidence] = useState(false);
+  const defaultConfidence = 0.5;
 
   const autoSubmitTimeoutRef = useRef(null);
   const statusTimeoutRef = useRef(null);
   const lastSubmittedRef = useRef({ selectedTeam: null, confidence: null });
   const didMountRef = useRef(false);
+  const initialPickRef = useRef(false);
+  const hasUserInteractedRef = useRef(false);
 
   const scheduledAt = parseISO(game.scheduled_at);
   const hasStarted = isPast(scheduledAt);
@@ -39,7 +43,25 @@ export function PickForm({ game, existingPick, onSubmit, onDelete, loading }) {
     return { winPoints, losePoints };
   }, [confidence, game]);
 
+  const formatPoints = (value) => Number(value ?? 0).toFixed(1);
+
   // Initialize form with existing pick
+  const scheduleSavedStatus = () => {
+    setSaveStatus('saved');
+    if (statusTimeoutRef.current) {
+      clearTimeout(statusTimeoutRef.current);
+    }
+    statusTimeoutRef.current = setTimeout(() => {
+      setSaveStatus('idle');
+    }, 1500);
+  };
+
+  useEffect(() => {
+    setHasInteractedConfidence(false);
+    hasUserInteractedRef.current = false;
+    initialPickRef.current = false;
+  }, [game.game_id]);
+
   useEffect(() => {
     if (existingPick) {
       const team = getSelectedTeamFromPick(existingPick);
@@ -47,12 +69,18 @@ export function PickForm({ game, existingPick, onSubmit, onDelete, loading }) {
       setSelectedTeam(team);
       setConfidence(conf);
       lastSubmittedRef.current = { selectedTeam: team, confidence: conf };
+      if (!hasUserInteractedRef.current) {
+        initialPickRef.current = !!team;
+      }
     } else {
       setSelectedTeam(null);
-      setConfidence(0.5);
-      lastSubmittedRef.current = { selectedTeam: null, confidence: 0.5 };
+      setConfidence(defaultConfidence);
+      lastSubmittedRef.current = { selectedTeam: null, confidence: defaultConfidence };
+      if (!hasUserInteractedRef.current) {
+        initialPickRef.current = false;
+      }
     }
-    setAutoSaveStatus('idle');
+    setSaveStatus('idle');
   }, [existingPick, game.game_id]);
 
   const handleSubmit = async (e) => {
@@ -63,6 +91,8 @@ export function PickForm({ game, existingPick, onSubmit, onDelete, loading }) {
       setError('Please select a winner');
       return;
     }
+
+    setSaveStatus('saving');
 
     // Convert team selection to scores for storage
     // These are representative scores - actual scoring uses Brier formula
@@ -78,7 +108,9 @@ export function PickForm({ game, existingPick, onSubmit, onDelete, loading }) {
     try {
       await onSubmit(game.game_id, teamAScore, teamBScore, confidence);
       lastSubmittedRef.current = { selectedTeam, confidence };
+      scheduleSavedStatus();
     } catch (err) {
+      setSaveStatus('idle');
       setError(err.message || 'Failed to save pick');
     }
   };
@@ -105,7 +137,7 @@ export function PickForm({ game, existingPick, onSubmit, onDelete, loading }) {
     }
 
     autoSubmitTimeoutRef.current = setTimeout(async () => {
-      setAutoSaveStatus('saving');
+      setSaveStatus('saving');
       setError(null);
 
       let teamAScore;
@@ -121,15 +153,9 @@ export function PickForm({ game, existingPick, onSubmit, onDelete, loading }) {
       try {
         await onSubmit(game.game_id, teamAScore, teamBScore, currentConfidence);
         lastSubmittedRef.current = { selectedTeam, confidence: currentConfidence };
-        setAutoSaveStatus('saved');
-        if (statusTimeoutRef.current) {
-          clearTimeout(statusTimeoutRef.current);
-        }
-        statusTimeoutRef.current = setTimeout(() => {
-          setAutoSaveStatus('idle');
-        }, 1500);
+        scheduleSavedStatus();
       } catch (err) {
-        setAutoSaveStatus('idle');
+        setSaveStatus('idle');
         setError(err.message || 'Failed to save pick');
       }
     }, 300);
@@ -158,7 +184,7 @@ export function PickForm({ game, existingPick, onSubmit, onDelete, loading }) {
     try {
       await onDelete(game.game_id);
       setSelectedTeam(null);
-      setConfidence(0.5);
+      setConfidence(defaultConfidence);
     } catch (err) {
       setError(err.message || 'Failed to delete pick');
     }
@@ -193,8 +219,49 @@ export function PickForm({ game, existingPick, onSubmit, onDelete, loading }) {
     );
   }
 
+  const hasConfidenceSatisfied = hasInteractedConfidence || (initialPickRef.current && selectedTeam);
+  const isDefaultConfidence = Math.abs((confidence ?? defaultConfidence) - defaultConfidence) < 0.0001;
+  const helperText = selectedTeam && hasConfidenceSatisfied && isDefaultConfidence
+    ? 'Pick saved but confidence=50%'
+    : selectedTeam && hasConfidenceSatisfied
+    ? 'Pick saved'
+    : !selectedTeam && !hasConfidenceSatisfied
+    ? 'Pick a team and confidence'
+    : !selectedTeam
+    ? 'Pick a team'
+    : !hasConfidenceSatisfied
+    ? 'Pick confidence'
+    : '';
+
   return (
     <Card className={styles.card}>
+      <div className={styles.iconCluster}>
+        {helperText && (
+          <span className={styles.savedGroup} aria-label="Pick saved">
+            {selectedTeam && hasConfidenceSatisfied && (
+              <span className={styles.savedIcon} aria-hidden="true">
+                <svg viewBox="0 0 16 16">
+                  <path d="M6.5 11.2 3.3 8l1.1-1.1 2.1 2.1 5-5L12.6 5z" />
+                </svg>
+              </span>
+            )}
+            <span className={styles.savedLabel}>{helperText}</span>
+          </span>
+        )}
+        {isEditing && (
+          <button
+            type="button"
+            className={styles.iconButton}
+            onClick={handleDelete}
+            disabled={loading}
+            aria-label="Remove pick"
+          >
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M4.2 4.2 8 8m0 0 3.8 3.8M8 8 11.8 4.2M8 8 4.2 11.8" />
+            </svg>
+          </button>
+        )}
+      </div>
       <div className={styles.time}>
         {format(scheduledAt, 'EEE, MMM d')} at {format(scheduledAt, 'h:mm a')}
       </div>
@@ -204,14 +271,17 @@ export function PickForm({ game, existingPick, onSubmit, onDelete, loading }) {
 
         <div className={styles.teamSelection}>
           <div className={styles.pointsHint}>
-            <span className={styles.winPoints}>+{pointsPreview.winPoints}</span>
-            <span className={styles.losePoints}>{pointsPreview.losePoints}</span>
+            <span className={styles.winPoints}>+{formatPoints(pointsPreview.winPoints)}</span>
+            <span className={styles.losePoints}>{formatPoints(pointsPreview.losePoints)}</span>
           </div>
 
           <button
             type="button"
             className={`${styles.teamButton} ${selectedTeam === 'team_a' ? styles.selected : ''}`}
-            onClick={() => setSelectedTeam('team_a')}
+            onClick={() => {
+              hasUserInteractedRef.current = true;
+              setSelectedTeam('team_a');
+            }}
           >
             <CountryFlag team={game.team_a} size="medium" />
             <span className={styles.teamButtonName}>{game.team_a?.abbreviation || game.team_a?.name || 'A'}</span>
@@ -222,15 +292,18 @@ export function PickForm({ game, existingPick, onSubmit, onDelete, loading }) {
           <button
             type="button"
             className={`${styles.teamButton} ${selectedTeam === 'team_b' ? styles.selected : ''}`}
-            onClick={() => setSelectedTeam('team_b')}
+            onClick={() => {
+              hasUserInteractedRef.current = true;
+              setSelectedTeam('team_b');
+            }}
           >
             <CountryFlag team={game.team_b} size="medium" />
             <span className={styles.teamButtonName}>{game.team_b?.abbreviation || game.team_b?.name || 'B'}</span>
           </button>
 
           <div className={styles.pointsHint}>
-            <span className={styles.winPoints}>+{pointsPreview.winPoints}</span>
-            <span className={styles.losePoints}>{pointsPreview.losePoints}</span>
+            <span className={styles.winPoints}>+{formatPoints(pointsPreview.winPoints)}</span>
+            <span className={styles.losePoints}>{formatPoints(pointsPreview.losePoints)}</span>
           </div>
         </div>
 
@@ -244,7 +317,11 @@ export function PickForm({ game, existingPick, onSubmit, onDelete, loading }) {
             max="1.0"
             step="0.01"
             value={confidence}
-            onChange={(e) => setConfidence(parseFloat(e.target.value))}
+            onChange={(e) => {
+              hasUserInteractedRef.current = true;
+              setHasInteractedConfidence(true);
+              setConfidence(parseFloat(e.target.value));
+            }}
             className={styles.slider}
           />
           <div className={styles.sliderLabels}>
@@ -253,27 +330,7 @@ export function PickForm({ game, existingPick, onSubmit, onDelete, loading }) {
           </div>
         </div>
 
-        <div className={styles.actions}>
-          <Button type="submit" loading={loading} size="small" disabled={!selectedTeam}>
-            {isEditing ? 'Update Pick' : 'Submit Pick'}
-          </Button>
-          {isEditing && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="small"
-              onClick={handleDelete}
-              disabled={loading}
-            >
-              Remove
-            </Button>
-          )}
-        </div>
-        {autoSaveStatus !== 'idle' && (
-          <div className={styles.status}>
-            {autoSaveStatus === 'saving' ? 'Saving...' : 'Saved'}
-          </div>
-        )}
+        <div className={styles.actions} />
       </form>
     </Card>
   );

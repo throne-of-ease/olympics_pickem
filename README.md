@@ -1,6 +1,6 @@
 # Olympic Hockey Pick'em
 
-A pick'em application for the 2026 Milan-Cortina Olympic Men's Ice Hockey Tournament. Players submit predictions via CSV before the tournament, and the app tracks their scores against actual results from ESPN APIs.
+A pick'em application for the 2026 Milan-Cortina Olympic Men's Ice Hockey Tournament. Players can submit predictions via CSV or the in-app pick form, and the app tracks their scores against actual results from ESPN APIs.
 
 ## Tech Stack
 
@@ -28,7 +28,7 @@ npm install
 ### 2. Set Up Supabase
 
 1. Create a new Supabase project at https://supabase.com
-2. Go to SQL Editor and run `data/schema.sql` to create tables
+2. Go to SQL Editor and run `config/supabase-schema.sql` to create tables
 3. Optionally run `data/seed-data.sql` to add sample data
 
 ### 3. Configure Environment Variables
@@ -116,6 +116,12 @@ Access the admin panel at `/admin`. Features:
 - View and delete player picks
 - Trigger ESPN data sync
 - Manually override game results
+
+## Registration & Picks UX
+
+- Registration is invite-only (invite code required).
+- Picks auto-submit when a team and confidence are selected (manual submit remains as fallback).
+- Scores display rounded to 1 decimal place across the UI.
 
 ## API Endpoints
 
