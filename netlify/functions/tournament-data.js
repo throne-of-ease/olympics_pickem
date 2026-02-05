@@ -8,8 +8,7 @@
 
 import { jsonResponse, errorResponse, corsHeaders } from './utils/response.js';
 import { loadAllPlayerPicksFromSupabase, loadScoringConfig, loadGameOverrides } from './utils/pickLoader.js';
-
-const ESPN_BASE_URL = 'https://site.api.espn.com/apis/site/v2/sports/hockey/olympics-mens-ice-hockey';
+import { getTournamentConfig, getActiveTournamentKey } from './utils/tournamentConfig.js';
 
 // Load scoring config once at module level
 const scoringConfig = loadScoringConfig();
@@ -27,14 +26,16 @@ export async function handler(event) {
   try {
     const now = new Date();
 
+    const tournamentKey = getActiveTournamentKey();
+
     // Fetch games from ESPN API (single call, used for both games and leaderboard)
-    let games = await fetchGamesFromESPN();
+    let games = await fetchGamesFromESPN(tournamentKey);
 
     // Apply any game overrides for testing
     games = applyGameOverrides(games);
 
     // Load all player picks from Supabase (falls back to static files if unavailable)
-    const playersWithPicks = await loadAllPlayerPicksFromSupabase();
+    const playersWithPicks = await loadAllPlayerPicksFromSupabase(tournamentKey);
 
     console.log('DEBUG tournament-data: Players loaded:', playersWithPicks.length);
     console.log('DEBUG tournament-data: Total picks across players:', playersWithPicks.reduce((sum, p) => sum + (p.picks?.length || 0), 0));
@@ -258,10 +259,10 @@ function applyGameOverrides(games) {
   });
 }
 
-async function fetchGamesFromESPN() {
+async function fetchGamesFromESPN(tournamentKey) {
   try {
-    const dateRange = '20260211-20260222';
-    const url = `${ESPN_BASE_URL}/scoreboard?dates=${dateRange}`;
+    const { espnBaseUrl, dateRange } = getTournamentConfig(tournamentKey);
+    const url = `${espnBaseUrl}/scoreboard?dates=${dateRange}`;
 
     // Add timeout to avoid long waits when ESPN has no data
     const controller = new AbortController();

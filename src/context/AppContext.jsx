@@ -1,14 +1,17 @@
 import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { fetchSchedule } from '../services/espnApi';
+import { getActiveTournamentKey } from '../config/tournamentConfig';
 import { picks as picksService, profiles as profilesService } from '../services/supabase';
 import { calculateLeaderboard, enrichGamesWithPicks } from '../services/leaderboardCalculator';
 
 const AppContext = createContext(null);
 
+const TOURNAMENT_KEY = getActiveTournamentKey();
+
 // Cache configuration
-const CACHE_KEY = 'olympics-pickem-cache';
+const CACHE_KEY = `olympics-pickem-cache-${TOURNAMENT_KEY}`;
 const CACHE_TTL = 60000; // 1 minute cache TTL
-const SETTINGS_KEY = 'olympics-pickem-settings';
+const SETTINGS_KEY = `olympics-pickem-settings-${TOURNAMENT_KEY}`;
 
 /**
  * Get cached data from localStorage if still valid
@@ -120,7 +123,7 @@ export function AppProvider({ children }) {
     try {
       // Fetch all data in parallel
       const [espnGames, visiblePicks, allProfiles] = await Promise.all([
-        fetchSchedule('20260211-20260222'),
+        fetchSchedule(),
         picksService.getAllVisible(),
         profilesService.getAll(),
       ]);

@@ -2,6 +2,7 @@ import { readFileSync, readdirSync, existsSync } from 'fs';
 import { join } from 'path';
 import Papa from 'papaparse';
 import { createServiceRoleClient, getAllProfiles, getAllPicks } from './supabase.js';
+import { getActiveTournamentKey } from './tournamentConfig.js';
 
 // Get the base data directory (public/data)
 // Note: Don't use import.meta.url - it's undefined after esbuild bundling
@@ -138,7 +139,7 @@ export function loadAllPlayerPicks() {
  * Falls back to static files if Supabase is not available
  * @returns {Promise<Array>} Array of player objects with picks attached
  */
-export async function loadAllPlayerPicksFromSupabase() {
+export async function loadAllPlayerPicksFromSupabase(tournamentKey = getActiveTournamentKey()) {
   try {
     // Use service role client to bypass RLS and read all picks for leaderboard
     const supabase = createServiceRoleClient();
@@ -151,7 +152,7 @@ export async function loadAllPlayerPicksFromSupabase() {
     // Fetch profiles and picks from Supabase
     const [profiles, picks] = await Promise.all([
       getAllProfiles(supabase),
-      getAllPicks(supabase),
+      getAllPicks(supabase, tournamentKey),
     ]);
 
     console.log('DEBUG: Profiles fetched:', profiles?.length || 0, profiles?.map(p => p.name));

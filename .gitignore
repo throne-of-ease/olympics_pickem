@@ -26,3 +26,11 @@ npm-debug.log*
 
 # Testing
 coverage/
+
+.gemini/
+AGENTS.md
+GEMINI.md
+OUT.md
+deno.lock
+plans/shimmering-swinging-seahorse.md
+

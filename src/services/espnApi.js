@@ -1,4 +1,4 @@
-const BASE_URL = 'https://site.api.espn.com/apis/site/v2/sports/hockey/olympics-mens-ice-hockey';
+import { getActiveTournamentKey, getTournamentConfig } from '../config/tournamentConfig';
 
 /**
  * Load game overrides from JSON file for local testing
@@ -56,8 +56,11 @@ function applyGameOverrides(games, overridesConfig) {
  * @param {string} dateRange - Date range in format 'YYYYMMDD-YYYYMMDD'
  * @returns {Promise<Array>} Array of game objects
  */
-export async function fetchSchedule(dateRange = '20260211-20260222') {
-  const url = `${BASE_URL}/scoreboard?dates=${dateRange}`;
+export async function fetchSchedule(dateRange) {
+  const tournamentKey = getActiveTournamentKey();
+  const { espnBaseUrl, dateRange: defaultRange } = getTournamentConfig(tournamentKey);
+  const range = dateRange || defaultRange;
+  const url = `${espnBaseUrl}/scoreboard?dates=${range}`;
 
   try {
     const response = await fetch(url);
@@ -200,7 +203,9 @@ function parseRoundType(seasonTypeName, eventName, scheduledDate) {
  * @returns {Promise<Object>} Detailed game summary
  */
 export async function fetchGameSummary(eventId) {
-  const url = `${BASE_URL}/summary?event=${eventId}`;
+  const tournamentKey = getActiveTournamentKey();
+  const { espnBaseUrl } = getTournamentConfig(tournamentKey);
+  const url = `${espnBaseUrl}/summary?event=${eventId}`;
 
   try {
     const response = await fetch(url);
@@ -241,7 +246,9 @@ function parseGameSummary(data, eventId) {
  * @returns {Promise<Array>} Array of team objects
  */
 export async function fetchTeams() {
-  const url = `${BASE_URL}/teams`;
+  const tournamentKey = getActiveTournamentKey();
+  const { espnBaseUrl } = getTournamentConfig(tournamentKey);
+  const url = `${espnBaseUrl}/teams`;
 
   try {
     const response = await fetch(url);
@@ -285,7 +292,9 @@ function parseTeamsResponse(data) {
  * @returns {Promise<Array>} Array of standing objects
  */
 export async function fetchStandings() {
-  const url = `${BASE_URL}/standings`;
+  const tournamentKey = getActiveTournamentKey();
+  const { espnBaseUrl } = getTournamentConfig(tournamentKey);
+  const url = `${espnBaseUrl}/standings`;
 
   try {
     const response = await fetch(url);

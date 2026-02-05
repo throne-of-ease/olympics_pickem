@@ -150,13 +150,19 @@ export async function getAllProfiles(supabase) {
  * @param {object} supabase - Supabase client
  * @param {string} userId - User ID
  */
-export async function getUserPicks(supabase, userId) {
+export async function getUserPicks(supabase, userId, tournamentKey) {
   if (!supabase || !userId) return [];
 
-  const { data, error } = await supabase
+  let query = supabase
     .from('picks')
     .select('*')
     .eq('user_id', userId);
+
+  if (tournamentKey) {
+    query = query.eq('tournament_key', tournamentKey);
+  }
+
+  const { data, error } = await query;
 
   if (error) return [];
   return data;
@@ -166,13 +172,19 @@ export async function getUserPicks(supabase, userId) {
  * Get all picks (respects RLS - only visible picks returned)
  * @param {object} supabase - Supabase client
  */
-export async function getAllPicks(supabase) {
+export async function getAllPicks(supabase, tournamentKey) {
   if (!supabase) return [];
 
   // Simple query without join - the join might fail if foreign key isn't set up
-  const { data, error } = await supabase
+  let query = supabase
     .from('picks')
     .select('*');
+
+  if (tournamentKey) {
+    query = query.eq('tournament_key', tournamentKey);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     console.error('Error fetching picks:', error.message, error.details, error.hint);
@@ -192,7 +204,7 @@ export async function getAllPicks(supabase) {
  * @param {number} teamBScore - Team B score prediction
  * @param {Date} gameStartTime - When the game starts
  */
-export async function savePick(supabase, userId, gameId, teamAScore, teamBScore, gameStartTime) {
+export async function savePick(supabase, userId, gameId, teamAScore, teamBScore, gameStartTime, tournamentKey) {
   if (!supabase || !userId) {
     throw new Error('Not authenticated');
   }
@@ -210,9 +222,10 @@ export async function savePick(supabase, userId, gameId, teamAScore, teamBScore,
         game_id: gameId,
         team_a_score: teamAScore,
         team_b_score: teamBScore,
+        tournament_key: tournamentKey || 'mens_ice_hockey',
       },
       {
-        onConflict: 'user_id,game_id',
+        onConflict: 'tournament_key,user_id,game_id',
       }
     )
     .select()
@@ -229,7 +242,7 @@ export async function savePick(supabase, userId, gameId, teamAScore, teamBScore,
  * @param {string} gameId - Game ID
  * @param {Date} gameStartTime - When the game starts
  */
-export async function deletePick(supabase, userId, gameId, gameStartTime) {
+export async function deletePick(supabase, userId, gameId, gameStartTime, tournamentKey) {
   if (!supabase || !userId) {
     throw new Error('Not authenticated');
   }
@@ -243,7 +256,8 @@ export async function deletePick(supabase, userId, gameId, gameStartTime) {
     .from('picks')
     .delete()
     .eq('user_id', userId)
-    .eq('game_id', gameId);
+    .eq('game_id', gameId)
+    .eq('tournament_key', tournamentKey || 'mens_ice_hockey');
 
   if (error) throw error;
 }

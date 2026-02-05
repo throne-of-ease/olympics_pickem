@@ -1,13 +1,12 @@
 import { jsonResponse, errorResponse, corsHeaders } from './utils/response.js';
 import {
-  createSupabaseClient,
-  getAccessToken,
   getAuthenticatedUser,
   getUserPicks,
   savePick,
   deletePick,
   isSupabaseConfigured,
 } from './utils/supabase.js';
+import { getActiveTournamentKey } from './utils/tournamentConfig.js';
 
 export async function handler(event) {
   // Handle CORS preflight
@@ -21,6 +20,8 @@ export async function handler(event) {
   }
 
   try {
+    const tournamentKey = getActiveTournamentKey();
+
     // Get authenticated user
     const { user, supabase } = await getAuthenticatedUser(event.headers);
 
@@ -31,12 +32,12 @@ export async function handler(event) {
     // Route to appropriate handler
     switch (event.httpMethod) {
       case 'GET':
-        return handleGetPicks(supabase, user);
+        return handleGetPicks(supabase, user, tournamentKey);
       case 'POST':
       case 'PUT':
-        return handleSavePick(event, supabase, user);
+        return handleSavePick(event, supabase, user, tournamentKey);
       case 'DELETE':
-        return handleDeletePick(event, supabase, user);
+        return handleDeletePick(event, supabase, user, tournamentKey);
       default:
         return errorResponse('Method not allowed', 405);
     }
@@ -49,8 +50,8 @@ export async function handler(event) {
 /**
  * GET /api/picks - Get user's picks
  */
-async function handleGetPicks(supabase, user) {
-  const picks = await getUserPicks(supabase, user.id);
+async function handleGetPicks(supabase, user, tournamentKey) {
+  const picks = await getUserPicks(supabase, user.id, tournamentKey);
 
   return jsonResponse({
     picks,
@@ -62,7 +63,7 @@ async function handleGetPicks(supabase, user) {
  * POST/PUT /api/picks - Save or update a pick
  * Body: { gameId, teamAScore, teamBScore, gameStartTime }
  */
-async function handleSavePick(event, supabase, user) {
+async function handleSavePick(event, supabase, user, tournamentKey) {
   let body;
   try {
     body = JSON.parse(event.body);
@@ -92,7 +93,8 @@ async function handleSavePick(event, supabase, user) {
       gameId,
       teamAScore,
       teamBScore,
-      gameStartTime
+      gameStartTime,
+      tournamentKey
     );
 
     return jsonResponse({
@@ -111,7 +113,7 @@ async function handleSavePick(event, supabase, user) {
  * DELETE /api/picks - Delete a pick
  * Query params: gameId, gameStartTime
  */
-async function handleDeletePick(event, supabase, user) {
+async function handleDeletePick(event, supabase, user, tournamentKey) {
   const params = event.queryStringParameters || {};
   const { gameId, gameStartTime } = params;
 
@@ -120,7 +122,7 @@ async function handleDeletePick(event, supabase, user) {
   }
 
   try {
-    await deletePick(supabase, user.id, gameId, gameStartTime);
+    await deletePick(supabase, user.id, gameId, gameStartTime, tournamentKey);
 
     return jsonResponse({
       success: true,
