@@ -9,6 +9,7 @@ export function RegisterPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [inviteCode, setInviteCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -19,7 +20,14 @@ export function RegisterPage() {
     e.preventDefault();
     setError(null);
 
+    const normalizedInviteCode = inviteCode.replace(/[\s-]+/g, '').toUpperCase();
+
     // Validation
+    if (!normalizedInviteCode) {
+      setError('Invite code is required');
+      return;
+    }
+
     if (password !== confirmPassword) {
       setError('Passwords do not match');
       return;
@@ -33,10 +41,11 @@ export function RegisterPage() {
     setLoading(true);
 
     try {
-      await signUp(email, password, name);
-      navigate('/');
+      await signUp(email, password, name, normalizedInviteCode);
+      navigate('/login?registered=1');
     } catch (err) {
-      setError(err.message || 'Failed to create account');
+      const message = err.message || 'Failed to create account';
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -118,6 +127,25 @@ export function RegisterPage() {
               required
               autoComplete="new-password"
             />
+          </div>
+
+          <div className={styles.field}>
+            <label htmlFor="inviteCode">Invite Code</label>
+            <input
+              id="inviteCode"
+              type="text"
+              value={inviteCode}
+              onChange={(e) => {
+                const value = e.target.value.replace(/[\s-]+/g, '').toUpperCase();
+                setInviteCode(value);
+              }}
+              placeholder="8-character code (letters/numbers)"
+              required
+              autoComplete="off"
+              className={styles.inviteInput}
+              maxLength={24}
+            />
+            <span className={styles.hint}>Enter the code you received from the admin.</span>
           </div>
 
           <Button type="submit" loading={loading} className={styles.submitButton}>

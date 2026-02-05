@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Button, Card } from '../components/common';
@@ -15,6 +15,10 @@ export function LoginPage() {
   const location = useLocation();
 
   const from = location.state?.from?.pathname || '/';
+  const showRegistered = useMemo(() => {
+    const params = new URLSearchParams(location.search);
+    return params.get('registered') === '1';
+  }, [location.search]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -54,6 +58,11 @@ export function LoginPage() {
         </div>
 
         <form onSubmit={handleSubmit} className={styles.form}>
+          {showRegistered && (
+            <div className={styles.success}>
+              Account created! You can sign in now.
+            </div>
+          )}
           {error && <div className={styles.error}>{error}</div>}
 
           <div className={styles.field}>

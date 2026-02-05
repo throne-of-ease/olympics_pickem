@@ -28,7 +28,7 @@ export const auth = {
    * Sign up with email and password via backend API
    * Uses admin API to bypass email confirmation
    */
-  async signUp(email, password, name) {
+  async signUp(email, password, name, inviteCode) {
     if (!supabase) throw new Error('Supabase not configured');
 
     // Use backend API to register (bypasses email confirmation)
@@ -37,7 +37,7 @@ export const auth = {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ email, password, name }),
+      body: JSON.stringify({ email, password, name, inviteCode }),
     });
 
     const data = await response.json();
