@@ -6,11 +6,14 @@
   "scripts": {
     "dev": "netlify dev",
     "dev:vite": "vite",
+    "dev:vite:womens": "VITE_TOURNAMENT_KEY=womens_ice_hockey TOURNAMENT_KEY=womens_ice_hockey vite",
+    "dev:womens": "VITE_TOURNAMENT_KEY=womens_ice_hockey TOURNAMENT_KEY=womens_ice_hockey netlify dev",
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint .",
     "test": "vitest",
     "test:run": "vitest run",
+    "test:run:womens": "VITE_TOURNAMENT_KEY=womens_ice_hockey TOURNAMENT_KEY=womens_ice_hockey vitest run",
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
