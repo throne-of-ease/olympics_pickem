@@ -1,13 +1,18 @@
 .card {
-  padding: var(--spacing-sm) var(--spacing-md);
+  padding: calc(var(--spacing-xl) + var(--spacing-sm)) var(--spacing-md) var(--spacing-md);
   position: relative;
 }
 
 .time {
-  text-align: center;
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  text-align: left;
   color: var(--text-muted);
   font-size: var(--font-size-sm);
-  margin-bottom: var(--spacing-sm);
+  line-height: 1.2;
+  margin: 0;
+  max-width: calc(100% - 140px);
 }
 
 .vs {

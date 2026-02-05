@@ -342,8 +342,8 @@
 .pickConfidence {
   font-size: 8px;
   font-weight: 500;
-  color: var(--text-muted);
-  opacity: 0.8;
+  color: var(--color-white);
+  opacity: 1;
 }
 
 .pickPoints {
@@ -383,6 +383,10 @@
 }
 
 .correct .pickPoints {
+  color: var(--color-success);
+}
+
+.provisionalCorrect .pickPoints {
   color: var(--color-success);
 }
 
@@ -617,7 +621,7 @@
 
 .cardPickConfidence {
   font-size: var(--font-size-xs);
-  color: var(--text-muted);
+  color: var(--color-white);
 }
 
 .cardPickPoints {
@@ -633,6 +637,11 @@
 }
 
 .pickCard.correct .cardPickPoints {
+  background: var(--color-success);
+  color: white;
+}
+
+.pickCard.provisionalCorrect .cardPickPoints {
   background: var(--color-success);
   color: white;
 }
@@ -891,7 +900,7 @@
 .timelineConfidence {
   font-size: 7px;
   font-weight: 500;
-  color: var(--text-muted);
+  color: var(--color-white);
 }
 
 .timelinePoints {
