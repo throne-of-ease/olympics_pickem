@@ -71,10 +71,10 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
-  const signUp = useCallback(async (email, password, name) => {
+  const signUp = useCallback(async (email, password, name, inviteCode) => {
     setError(null);
     try {
-      const data = await auth.signUp(email, password, name);
+      const data = await auth.signUp(email, password, name, inviteCode);
       return data;
     } catch (err) {
       setError(err.message);
