@@ -9,6 +9,8 @@ export function PlayerScoreCard({ player, position, showDetails = true }) {
     return '';
   };
 
+  const formatPoints = (value) => Number(value ?? 0).toFixed(1);
+
   return (
     <Card className={`${styles.card} ${getMedalClass(position)}`} padding="none">
       <div className={styles.main}>
@@ -24,7 +26,7 @@ export function PlayerScoreCard({ player, position, showDetails = true }) {
         </div>
 
         <div className={styles.points}>
-          <span className={styles.total}>{player.totalPoints}</span>
+          <span className={styles.total}>{formatPoints(player.totalPoints)}</span>
           <span className={styles.label}>pts</span>
         </div>
       </div>
@@ -59,12 +61,14 @@ function RoundBreakdown({ label, data }) {
     );
   }
 
+  const formatPoints = (value) => Number(value ?? 0).toFixed(1);
+
   return (
     <div className={styles.roundItem}>
       <span className={styles.roundLabel}>{label}</span>
       <span className={styles.roundValue}>
         {data.correct}/{data.total}
-        <small> ({data.points}pts)</small>
+        <small> ({formatPoints(data.points)}pts)</small>
       </span>
     </div>
   );

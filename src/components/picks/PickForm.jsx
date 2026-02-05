@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { format, parseISO, isPast } from 'date-fns';
 import { Button, Card, CountryFlag } from '../common';
 import { calculateBrierPoints } from '../../services/scoring';
@@ -9,6 +9,12 @@ export function PickForm({ game, existingPick, onSubmit, onDelete, loading }) {
   const [selectedTeam, setSelectedTeam] = useState(null); // 'team_a' or 'team_b'
   const [confidence, setConfidence] = useState(0.5);
   const [error, setError] = useState(null);
+  const [autoSaveStatus, setAutoSaveStatus] = useState('idle');
+
+  const autoSubmitTimeoutRef = useRef(null);
+  const statusTimeoutRef = useRef(null);
+  const lastSubmittedRef = useRef({ selectedTeam: null, confidence: null });
+  const didMountRef = useRef(false);
 
   const scheduledAt = parseISO(game.scheduled_at);
   const hasStarted = isPast(scheduledAt);
@@ -36,12 +42,17 @@ export function PickForm({ game, existingPick, onSubmit, onDelete, loading }) {
   // Initialize form with existing pick
   useEffect(() => {
     if (existingPick) {
-      setSelectedTeam(getSelectedTeamFromPick(existingPick));
-      setConfidence(existingPick.confidence ?? 0.5);
+      const team = getSelectedTeamFromPick(existingPick);
+      const conf = existingPick.confidence ?? 0.5;
+      setSelectedTeam(team);
+      setConfidence(conf);
+      lastSubmittedRef.current = { selectedTeam: team, confidence: conf };
     } else {
       setSelectedTeam(null);
       setConfidence(0.5);
+      lastSubmittedRef.current = { selectedTeam: null, confidence: 0.5 };
     }
+    setAutoSaveStatus('idle');
   }, [existingPick, game.game_id]);
 
   const handleSubmit = async (e) => {
@@ -66,10 +77,80 @@ export function PickForm({ game, existingPick, onSubmit, onDelete, loading }) {
 
     try {
       await onSubmit(game.game_id, teamAScore, teamBScore, confidence);
+      lastSubmittedRef.current = { selectedTeam, confidence };
     } catch (err) {
       setError(err.message || 'Failed to save pick');
     }
   };
+
+  useEffect(() => {
+    if (!didMountRef.current) {
+      didMountRef.current = true;
+      return;
+    }
+
+    if (hasStarted || !selectedTeam || loading) return;
+
+    const currentConfidence = Number(confidence ?? 0.5);
+    const lastSubmitted = lastSubmittedRef.current;
+    if (
+      lastSubmitted.selectedTeam === selectedTeam &&
+      Number(lastSubmitted.confidence ?? 0.5) === currentConfidence
+    ) {
+      return;
+    }
+
+    if (autoSubmitTimeoutRef.current) {
+      clearTimeout(autoSubmitTimeoutRef.current);
+    }
+
+    autoSubmitTimeoutRef.current = setTimeout(async () => {
+      setAutoSaveStatus('saving');
+      setError(null);
+
+      let teamAScore;
+      let teamBScore;
+      if (selectedTeam === 'team_a') {
+        teamAScore = 1;
+        teamBScore = 0;
+      } else {
+        teamAScore = 0;
+        teamBScore = 1;
+      }
+
+      try {
+        await onSubmit(game.game_id, teamAScore, teamBScore, currentConfidence);
+        lastSubmittedRef.current = { selectedTeam, confidence: currentConfidence };
+        setAutoSaveStatus('saved');
+        if (statusTimeoutRef.current) {
+          clearTimeout(statusTimeoutRef.current);
+        }
+        statusTimeoutRef.current = setTimeout(() => {
+          setAutoSaveStatus('idle');
+        }, 1500);
+      } catch (err) {
+        setAutoSaveStatus('idle');
+        setError(err.message || 'Failed to save pick');
+      }
+    }, 300);
+
+    return () => {
+      if (autoSubmitTimeoutRef.current) {
+        clearTimeout(autoSubmitTimeoutRef.current);
+      }
+    };
+  }, [selectedTeam, confidence, hasStarted, loading, onSubmit, game.game_id]);
+
+  useEffect(() => {
+    return () => {
+      if (autoSubmitTimeoutRef.current) {
+        clearTimeout(autoSubmitTimeoutRef.current);
+      }
+      if (statusTimeoutRef.current) {
+        clearTimeout(statusTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleDelete = async () => {
     if (!window.confirm('Remove your prediction for this game?')) return;
@@ -188,6 +269,11 @@ export function PickForm({ game, existingPick, onSubmit, onDelete, loading }) {
             </Button>
           )}
         </div>
+        {autoSaveStatus !== 'idle' && (
+          <div className={styles.status}>
+            {autoSaveStatus === 'saving' ? 'Saving...' : 'Saved'}
+          </div>
+        )}
       </form>
     </Card>
   );

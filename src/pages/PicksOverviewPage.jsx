@@ -12,6 +12,13 @@ const DESIGN_OPTIONS = [
   { id: 'cards', label: 'Cards' },
 ];
 
+const formatPoints = (value) => Number(value ?? 0).toFixed(1);
+const formatPointsWithSign = (value) => {
+  const num = Number(value ?? 0);
+  const formatted = num.toFixed(1);
+  return num > 0 ? `+${formatted}` : formatted;
+};
+
 export function PicksOverviewPage() {
   const { games, loading: gamesLoading, error: gamesError, refresh: refreshGames } = useGames();
   const { leaderboard, loading: lbLoading, error: lbError, refresh: refreshLb } = useLeaderboard();
@@ -133,11 +140,11 @@ function CompactTableView({ games, players }) {
                   <span className={styles.playerName}>{player.playerName}</span>
                   <span className={styles.playerInitials}>{getInitials(player.playerName)}</span>
                   <span className={`${styles.playerPoints} ${idx === 0 ? styles.leader : ''}`}>
-                    {player.totalPoints}
+                    {formatPoints(player.totalPoints)}
                   </span>
                   {idx > 0 && (
                     <span className={styles.pointsDiff}>
-                      {player.totalPoints - players[0].totalPoints}
+                      {formatPoints(player.totalPoints - players[0].totalPoints)}
                     </span>
                   )}
                 </div>
@@ -234,7 +241,7 @@ function CardGridView({ games, players }) {
           >
             <div className={styles.cardRank}>#{idx + 1}</div>
             <div className={styles.cardName}>{player.playerName}</div>
-            <div className={styles.cardScore}>{player.totalPoints}</div>
+            <div className={styles.cardScore}>{formatPoints(player.totalPoints)}</div>
             <div className={styles.cardAccuracy}>{player.accuracy}% accuracy</div>
           </div>
         ))}
@@ -362,10 +369,7 @@ function PickDisplay({ pick, game, variant }) {
   const getAbbrev = (team) => team?.abbreviation || team?.name?.slice(0, 3).toUpperCase() || '?';
 
   // Format points: show + for positive, just the number for negative/zero
-  const formatPoints = (points) => {
-    if (points > 0) return `+${points}`;
-    return points.toString();
-  };
+  const formatPickPoints = (points) => formatPointsWithSign(points);
 
   if (variant === 'compact') {
     return (
@@ -380,7 +384,7 @@ function PickDisplay({ pick, game, variant }) {
         </div>
         {canShowPoints && (
           <span className={`${styles.pickPoints} ${pick.pointsEarned < 0 ? styles.negative : ''}`}>
-            {formatPoints(pick.pointsEarned)}
+            {formatPickPoints(pick.pointsEarned)}
           </span>
         )}
       </div>
@@ -396,7 +400,7 @@ function PickDisplay({ pick, game, variant }) {
         <span className={styles.cardPickConfidence}>{confidencePercent}%</span>
         {canShowPoints && (
           <span className={`${styles.cardPickPoints} ${pick.pointsEarned < 0 ? styles.negative : ''}`}>
-            {formatPoints(pick.pointsEarned)}
+            {formatPickPoints(pick.pointsEarned)}
           </span>
         )}
       </div>
@@ -418,7 +422,7 @@ function PickDisplay({ pick, game, variant }) {
       </div>
       {canShowPoints && (
         <span className={`${styles.timelinePoints} ${pick.pointsEarned < 0 ? styles.negative : ''}`}>
-          {formatPoints(pick.pointsEarned)}
+          {formatPickPoints(pick.pointsEarned)}
         </span>
       )}
     </div>

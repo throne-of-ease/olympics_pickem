@@ -114,6 +114,12 @@
   gap: var(--spacing-sm);
 }
 
+.status {
+  text-align: center;
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+}
+
 /* Locked State */
 .locked {
   display: flex;

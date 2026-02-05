@@ -156,7 +156,7 @@ describe('GameCard', () => {
     };
     render(<GameCard game={gameWithPicks} />);
 
-    expect(screen.getByText('+1')).toBeInTheDocument();
+    expect(screen.getByText('+1.0')).toBeInTheDocument();
   });
 
   it('shows 0 for incorrect picks', () => {
@@ -180,7 +180,7 @@ describe('GameCard', () => {
     };
     render(<GameCard game={gameWithPicks} />);
 
-    expect(screen.getByText('0')).toBeInTheDocument();
+    expect(screen.getByText('0.0')).toBeInTheDocument();
   });
 
   it('handles TBD team', () => {

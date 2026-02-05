@@ -30,7 +30,7 @@ describe('PlayerScoreCard', () => {
 
   it('renders total points', () => {
     render(<PlayerScoreCard player={basePlayer} position={1} />);
-    expect(screen.getByText('15')).toBeInTheDocument();
+    expect(screen.getByText('15.0')).toBeInTheDocument();
     expect(screen.getByText('pts')).toBeInTheDocument();
   });
 

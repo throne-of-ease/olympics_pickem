@@ -85,8 +85,10 @@ function PredictionRow({ pick, game }) {
 
   // Format points: show + for positive, just the number for negative/zero
   const formatPoints = (points) => {
-    if (points > 0) return `+${points}`;
-    return points.toString();
+    const value = Number(points ?? 0);
+    const formatted = value.toFixed(1);
+    if (value > 0) return `+${formatted}`;
+    return formatted;
   };
 
   return (
