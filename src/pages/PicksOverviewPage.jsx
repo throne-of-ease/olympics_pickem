@@ -9,7 +9,7 @@ import { getTeamFlagFromObject } from '../utils/countryFlags';
 import styles from './PicksOverviewPage.module.css';
 
 const DESIGN_OPTIONS = [
-  { id: 'compact', label: 'Compact Table' },
+  { id: 'compact', label: 'Table' },
   { id: 'cards', label: 'Cards' },
 ];
 
@@ -19,11 +19,33 @@ const formatPointsWithSign = (value) => {
   const formatted = num.toFixed(1);
   return num > 0 ? `+${formatted}` : formatted;
 };
+const formatScoreInline = (game) => {
+  const scoreA = game?.score_a;
+  const scoreB = game?.score_b;
+  const scoreAValue = (scoreA === null || scoreA === undefined || scoreA === '') ? null : Number(scoreA);
+  const scoreBValue = (scoreB === null || scoreB === undefined || scoreB === '') ? null : Number(scoreB);
+  const hasScores = Number.isFinite(scoreAValue) && Number.isFinite(scoreBValue);
+  return hasScores ? `${scoreAValue}-${scoreBValue}` : 'vs';
+};
+const formatLiveStatus = (game) => {
+  const periodRaw = game?.status_period ?? game?.status?.period;
+  const clock = game?.status_clock ?? game?.status?.clock;
+  const detail = game?.status_detail ?? game?.status?.detail;
+  const period = periodRaw !== null && periodRaw !== undefined ? Number(periodRaw) : null;
+  const hasPeriod = Number.isFinite(period);
+  const hasClock = typeof clock === 'string' && clock.trim() !== '';
+
+  if (hasPeriod && hasClock) return `P${period} ${clock}`;
+  if (hasPeriod) return `P${period}`;
+  if (hasClock) return clock;
+  if (detail) return detail;
+  return 'LIVE';
+};
 
 export function PicksOverviewPage() {
   const { games, loading: gamesLoading, error: gamesError, refresh: refreshGames } = useGames();
   const { leaderboard, loading: lbLoading, error: lbError, refresh: refreshLb } = useLeaderboard();
-  const { tournamentProgress, includeLiveGames, toggleIncludeLiveGames } = useApp();
+  const { tournamentProgress, includeLiveGames, toggleIncludeLiveGames, forceRefresh } = useApp();
   const [design, setDesign] = useState(() => {
     return 'compact';
   });
@@ -55,8 +77,7 @@ export function PicksOverviewPage() {
   }, [games]);
 
   const refresh = () => {
-    refreshGames();
-    refreshLb();
+    forceRefresh();
   };
 
   if (error) {
@@ -75,7 +96,7 @@ export function PicksOverviewPage() {
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <h1>Picks Overview</h1>
+        <h1>Overview</h1>
         <div className={styles.controls}>
           <div className={styles.designToggle}>
             {DESIGN_OPTIONS.map((opt) => (
@@ -96,7 +117,13 @@ export function PicksOverviewPage() {
             />
             <span>Include live games</span>
           </label>
-          <Button variant="ghost" size="small" onClick={refresh} disabled={loading}>
+          <Button
+            variant="ghost"
+            size="small"
+            className={styles.refreshButton}
+            onClick={refresh}
+            disabled={loading}
+          >
             {loading ? 'Refreshing...' : 'Refresh'}
           </Button>
         </div>
@@ -164,10 +191,14 @@ function CompactTableView({ games, players }) {
 
 function CompactTableRow({ game, players }) {
   const scheduledAt = parseISO(game.scheduled_at);
-  const isFinal = game.status === 'final';
-  const isLive = game.status === 'in_progress';
+  const statusState = typeof game.status === 'string' ? game.status : game.status?.state;
+  const isFinal = statusState === 'final';
+  const isLive = statusState === 'in_progress';
+  const isWinnerA = isFinal && game.result === 'win_a';
+  const isWinnerB = isFinal && game.result === 'win_b';
   const now = new Date();
   const gameStarted = isAfter(now, scheduledAt) || isLive || isFinal;
+  const liveStatus = isLive ? formatLiveStatus(game) : null;
 
   const getPickForPlayer = (playerId) => {
     return game.picks?.find(p => p.playerId === playerId);
@@ -180,20 +211,25 @@ function CompactTableRow({ game, players }) {
       <td className={styles.gameCell}>
         <div className={styles.gameInfo}>
           <div className={styles.teams}>
-            <TeamBadge team={game.team_a} isWinner={isFinal && game.result === 'win_a'} />
-            <span className={styles.teamAbbrev}>{getAbbrev(game.team_a)}</span>
-            <span className={styles.scoreInline}>
-              {(isFinal || isLive) ? `${game.score_a}-${game.score_b}` : 'vs'}
+            <TeamBadge team={game.team_a} isWinner={isWinnerA} />
+            <span className={`${styles.teamAbbrev} ${isWinnerA ? styles.teamAbbrevWinner : ''}`}>
+              {getAbbrev(game.team_a)}
             </span>
-            <span className={styles.teamAbbrev}>{getAbbrev(game.team_b)}</span>
-            <TeamBadge team={game.team_b} isWinner={isFinal && game.result === 'win_b'} />
+            <span className={styles.scoreInline}>
+              {(isFinal || isLive) ? formatScoreInline(game) : 'vs'}
+            </span>
+            <span className={`${styles.teamAbbrev} ${isWinnerB ? styles.teamAbbrevWinner : ''}`}>
+              {getAbbrev(game.team_b)}
+            </span>
+            <TeamBadge team={game.team_b} isWinner={isWinnerB} />
           </div>
           <div className={styles.gameTime}>
             {isLive && <span className={styles.liveBadge}>LIVE</span>}
-            {isFinal && <span className={styles.finalBadge}>FIN</span>}
+            {isFinal && <span className={styles.finalBadge}>FINAL</span>}
             {!isFinal && !isLive && (
               <span>{format(scheduledAt, 'd/M HH:mm')}</span>
             )}
+            {isLive && <span className={styles.liveTime}>{liveStatus}</span>}
           </div>
         </div>
       </td>
@@ -270,10 +306,12 @@ function CardGridView({ games, players }) {
 
 function TimelineGameRow({ game, players }) {
   const scheduledAt = parseISO(game.scheduled_at);
-  const isFinal = game.status === 'final';
-  const isLive = game.status === 'in_progress';
+  const statusState = typeof game.status === 'string' ? game.status : game.status?.state;
+  const isFinal = statusState === 'final';
+  const isLive = statusState === 'in_progress';
   const now = new Date();
   const gameStarted = isAfter(now, scheduledAt) || isLive || isFinal;
+  const timeLabel = isLive ? formatLiveStatus(game) : format(scheduledAt, 'HH:mm');
 
   const getPickForPlayer = (playerId) => {
     return game.picks?.find(p => p.playerId === playerId);
@@ -283,14 +321,14 @@ function TimelineGameRow({ game, players }) {
     <div className={`${styles.timelineGame} ${isLive ? styles.timelineLive : ''}`}>
       <div className={styles.timelineTime}>
         {isLive && <span className={styles.timelineLiveDot} />}
-        <span>{format(scheduledAt, 'HH:mm')}</span>
+        <span>{timeLabel}</span>
       </div>
 
       <div className={styles.timelineMatchup}>
         <div className={styles.timelineTeams}>
           <TeamBadge team={game.team_a} isWinner={isFinal && game.result === 'win_a'} showFlag />
           <span className={styles.timelineVs}>
-            {(isFinal || isLive) ? `${game.score_a}-${game.score_b}` : 'vs'}
+            {(isFinal || isLive) ? formatScoreInline(game) : 'vs'}
           </span>
           <TeamBadge team={game.team_b} isWinner={isFinal && game.result === 'win_b'} showFlag />
         </div>
@@ -341,8 +379,9 @@ function TeamBadge({ team, isWinner, showName = false, showFlag = false }) {
 }
 
 function PickDisplay({ pick, game, variant }) {
-  const isFinal = game.status === 'final';
-  const isLive = game.status === 'in_progress';
+  const statusState = typeof game.status === 'string' ? game.status : game.status?.state;
+  const isFinal = statusState === 'final';
+  const isLive = statusState === 'in_progress';
   const isCorrect = pick.isCorrect;
   const isProvisional = pick.isProvisional;
   const predictedWinner = pick.predictedResult === 'win_a' ? game.team_a :

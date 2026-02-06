@@ -69,6 +69,12 @@
   cursor: pointer;
 }
 
+.refreshButton:disabled {
+  opacity: 1;
+  background: var(--color-gray-200);
+  color: var(--color-gray-800);
+}
+
 .error {
   text-align: center;
   padding: var(--spacing-2xl);
@@ -266,12 +272,18 @@
 }
 
 .finalBadge {
-  background: var(--color-gray-600);
+  background: var(--color-success);
   color: white;
   padding: 1px 4px;
   border-radius: 3px;
   font-weight: 600;
   font-size: 9px;
+}
+
+.liveTime {
+  margin-left: var(--spacing-xs);
+  font-weight: 600;
+  color: var(--color-error);
 }
 
 .pickCell {
@@ -1050,6 +1062,11 @@
     font-weight: 700;
   }
 
+  .teamAbbrevWinner {
+    color: var(--color-success);
+    font-weight: 800;
+  }
+
   .scoreInline {
     font-size: 12px;
     min-width: 24px;
@@ -1057,6 +1074,11 @@
 
   .gameTime {
     font-size: 10px;
+  }
+
+  .refreshButton:active:not(:disabled) {
+    background: var(--color-primary-light);
+    color: var(--color-primary);
   }
 
   .pickCell {

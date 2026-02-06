@@ -8,7 +8,7 @@ import styles from './GamesPage.module.css';
 
 export function GamesPage() {
   const { games, categorizedGames, gamesByRound, loading, error, refresh } = useGames();
-  const { tournamentProgress, includeLiveGames, toggleIncludeLiveGames } = useApp();
+  const { tournamentProgress, includeLiveGames, toggleIncludeLiveGames, forceRefresh } = useApp();
   const [filter, setFilter] = useState('all');
   const [round, setRound] = useState('all');
 
@@ -58,7 +58,7 @@ export function GamesPage() {
     return (
       <div className={styles.error}>
         <p>Failed to load games: {error}</p>
-        <Button onClick={refresh}>Try Again</Button>
+        <Button onClick={forceRefresh}>Try Again</Button>
       </div>
     );
   }
@@ -76,7 +76,13 @@ export function GamesPage() {
             />
             <span>Include live games</span>
           </label>
-          <Button variant="ghost" size="small" onClick={refresh} disabled={loading}>
+          <Button
+            variant="ghost"
+            size="small"
+            className={styles.refreshButton}
+            onClick={forceRefresh}
+            disabled={loading}
+          >
             {loading ? 'Refreshing...' : 'Refresh'}
           </Button>
         </div>

@@ -185,12 +185,14 @@ export function AppProvider({ children }) {
       setError({ games: message, leaderboard: message });
 
       // Try to use stale cache on error
-      const staleCache = getCachedData();
-      if (staleCache) {
-        console.log('Using stale cache due to fetch error');
-        setGames(staleCache.games || []);
-        setLeaderboard(staleCache.leaderboard || []);
-        setTournamentProgress(staleCache.tournamentProgress);
+      if (!skipCache) {
+        const staleCache = getCachedData();
+        if (staleCache) {
+          console.log('Using stale cache due to fetch error');
+          setGames(staleCache.games || []);
+          setLeaderboard(staleCache.leaderboard || []);
+          setTournamentProgress(staleCache.tournamentProgress);
+        }
       }
     } finally {
       setLoading({ games: false, leaderboard: false });

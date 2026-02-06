@@ -7,7 +7,7 @@ import styles from './LeaderboardPage.module.css';
 
 export function LeaderboardPage() {
   const { leaderboard, tournamentProgress, loading, error, refresh } = useLeaderboard();
-  const { includeLiveGames, toggleIncludeLiveGames } = useApp();
+  const { includeLiveGames, toggleIncludeLiveGames, forceRefresh } = useApp();
 
   // Smart polling: adjusts interval based on tournament state
   // Also pauses when browser tab is hidden
@@ -26,7 +26,7 @@ export function LeaderboardPage() {
     return (
       <div className={styles.error}>
         <p>Failed to load leaderboard: {error}</p>
-        <Button onClick={refresh}>Try Again</Button>
+        <Button onClick={forceRefresh}>Try Again</Button>
       </div>
     );
   }
@@ -34,7 +34,7 @@ export function LeaderboardPage() {
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <h1>Leaderboard</h1>
+        <h1>Standings</h1>
         <div className={styles.controls}>
           <label className={styles.toggle}>
             <input
@@ -44,7 +44,13 @@ export function LeaderboardPage() {
             />
             <span>Include live games</span>
           </label>
-          <Button variant="ghost" size="small" onClick={refresh} disabled={loading}>
+          <Button
+            variant="ghost"
+            size="small"
+            className={styles.refreshButton}
+            onClick={forceRefresh}
+            disabled={loading}
+          >
             {loading ? 'Refreshing...' : 'Refresh'}
           </Button>
         </div>

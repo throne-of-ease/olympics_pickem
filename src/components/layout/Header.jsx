@@ -20,9 +20,8 @@ export function Header() {
           <span className={styles.title}>Olympic Hockey Pick'em</span>
         </Link>
         <nav className={styles.nav}>
-          <Link to="/" className={styles.link}>Picks Overview</Link>
-          <Link to="/games" className={styles.link}>Games</Link>
-          <Link to="/leaderboard" className={styles.link}>Leaderboard</Link>
+          <Link to="/" className={styles.link}>Overview</Link>
+          <Link to="/leaderboard" className={styles.link}>Standings</Link>
           <Link to="/rules" className={styles.link}>Rules</Link>
 
           {isConfigured && (

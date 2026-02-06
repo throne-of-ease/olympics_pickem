@@ -9,7 +9,7 @@ import styles from './MyPicksPage.module.css';
 
 export function MyPicksPage() {
   const { user, isAuthenticated } = useAuth();
-  const { games, loading: appLoading, fetchGames } = useApp();
+  const { games, loading: appLoading, forceRefresh } = useApp();
   const gamesLoading = appLoading.games;
   const [myPicks, setMyPicks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -158,7 +158,12 @@ export function MyPicksPage() {
     <div className={styles.page}>
       <div className={styles.header}>
         <h1>My Picks</h1>
-        <Button variant="ghost" size="small" onClick={fetchGames}>
+        <Button
+          variant="ghost"
+          size="small"
+          className={styles.refreshButton}
+          onClick={forceRefresh}
+        >
           Refresh
         </Button>
       </div>
