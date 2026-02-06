@@ -21,7 +21,9 @@ export function PickForm({ game, existingPick, onSubmit, onDelete, loading }) {
   const hasUserInteractedRef = useRef(false);
 
   const scheduledAt = parseISO(game.scheduled_at);
-  const hasStarted = isPast(scheduledAt);
+  const isFinal = game.status === 'final';
+  const isLive = game.status === 'in_progress';
+  const hasStarted = isPast(scheduledAt) || isLive || isFinal;
   const isEditing = !!existingPick;
 
   // Derive selected team from existing pick scores
@@ -196,23 +198,52 @@ export function PickForm({ game, existingPick, onSubmit, onDelete, loading }) {
   };
 
   if (hasStarted) {
+    const showScore = (isLive || isFinal) && game.score_a !== null && game.score_a !== undefined
+      && game.score_b !== null && game.score_b !== undefined;
+    const teamAName = getTeamDisplayName('team_a');
+    const teamBName = getTeamDisplayName('team_b');
+    const winnerA = isFinal && game.result === 'win_a';
+    const winnerB = isFinal && game.result === 'win_b';
+
     return (
       <Card className={styles.card}>
         <div className={styles.locked}>
-          <span className={styles.lockIcon}>🔒</span>
-          <span>Game has started - picks are locked</span>
+          <div className={styles.lockedHeader}>
+            <span className={styles.lockIcon}>🔒</span>
+            <span className={styles.lockedLabel}>Locked</span>
+            <span className={`${styles.lockedStatus} ${isLive ? styles.lockedLive : isFinal ? styles.lockedFinal : ''}`}>
+              {isLive ? 'LIVE' : isFinal ? 'FINAL' : 'STARTED'}
+            </span>
+          </div>
+          <div className={styles.lockedMatchup}>
+            <div className={`${styles.lockedTeam} ${winnerA ? styles.lockedWinner : ''}`}>
+              {game.team_a ? <CountryFlag team={game.team_a} size="small" /> : null}
+              <span>{teamAName}</span>
+            </div>
+            <div className={styles.lockedScore}>
+              {showScore ? `${game.score_a}-${game.score_b}` : 'vs'}
+            </div>
+            <div className={`${styles.lockedTeam} ${winnerB ? styles.lockedWinner : ''}`}>
+              {game.team_b ? <CountryFlag team={game.team_b} size="small" /> : null}
+              <span>{teamBName}</span>
+            </div>
+          </div>
         </div>
-        {existingPick && (
+        {existingPick ? (
           <div className={styles.submittedPick}>
             <div className={styles.submittedTeam}>
-              Your pick: {' '}
+              Your pick:{' '}
               {getSelectedTeamFromPick(existingPick)
                 ? getTeamDisplayName(getSelectedTeamFromPick(existingPick))
                 : 'Not set'}
             </div>
             <div className={styles.submittedConfidence}>
-              Confidence: {Math.round(existingPick.confidence * 100)}%
+              Confidence: {Math.round((existingPick.confidence ?? 0.5) * 100)}%
             </div>
+          </div>
+        ) : (
+          <div className={styles.submittedPick}>
+            <div className={styles.submittedTeam}>No pick submitted</div>
           </div>
         )}
       </Card>

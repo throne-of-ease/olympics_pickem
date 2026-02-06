@@ -8,8 +8,8 @@ const TOURNAMENTS = {
   womens_ice_hockey: {
     label: "Women's Olympic Ice Hockey",
     espnBaseUrl: 'https://site.api.espn.com/apis/site/v2/sports/hockey/olympics-womens-ice-hockey',
-    // Women start earlier; adjust when schedule is finalized
-    dateRange: '20260206-20260220',
+    // Women start earlier; opening day Feb 5, 2026
+    dateRange: '20260205-20260220',
   },
 };
 

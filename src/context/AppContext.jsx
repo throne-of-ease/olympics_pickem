@@ -91,7 +91,7 @@ export function AppProvider({ children }) {
   const [lastUpdated, setLastUpdated] = useState(null);
   const [includeLiveGames, setIncludeLiveGames] = useState(() => {
     const settings = getSettings();
-    return settings.includeLiveGames ?? false;
+    return settings.includeLiveGames ?? true;
   });
 
   /**

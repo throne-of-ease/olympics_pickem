@@ -25,10 +25,6 @@ export function PicksOverviewPage() {
   const { leaderboard, loading: lbLoading, error: lbError, refresh: refreshLb } = useLeaderboard();
   const { tournamentProgress, includeLiveGames, toggleIncludeLiveGames } = useApp();
   const [design, setDesign] = useState(() => {
-    // Default to cards on small screens for better mobile UX
-    if (typeof window !== 'undefined') {
-      return window.innerWidth < 480 ? 'cards' : 'compact';
-    }
     return 'compact';
   });
 
