@@ -41,32 +41,37 @@ CREATE TABLE picks (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
   game_id TEXT NOT NULL,  -- ESPN event ID
+  tournament_key TEXT NOT NULL DEFAULT 'mens_ice_hockey',
   team_a_score INTEGER NOT NULL CHECK (team_a_score >= 0),
   team_b_score INTEGER NOT NULL CHECK (team_b_score >= 0),
   confidence FLOAT DEFAULT 0.5 CHECK (confidence >= 0.5 AND confidence <= 1.0),
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW(),
-  UNIQUE(user_id, game_id)
+  UNIQUE(tournament_key, user_id, game_id)
 );
 
 -- Create indexes for faster queries
 CREATE INDEX idx_picks_user ON picks(user_id);
 CREATE INDEX idx_picks_game ON picks(game_id);
+CREATE INDEX idx_picks_tournament_game ON picks(tournament_key, game_id);
 
 -- ===========================================
 -- GAMES CACHE TABLE (optional)
 -- Cache ESPN game data to reduce API calls
 -- ===========================================
 CREATE TABLE games_cache (
-  game_id TEXT PRIMARY KEY,
+  tournament_key TEXT NOT NULL DEFAULT 'mens_ice_hockey',
+  game_id TEXT NOT NULL,
   game_data JSONB NOT NULL,
   scheduled_at TIMESTAMPTZ NOT NULL,
   status TEXT NOT NULL,  -- 'scheduled', 'in_progress', 'completed'
-  updated_at TIMESTAMPTZ DEFAULT NOW()
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  PRIMARY KEY (tournament_key, game_id)
 );
 
 CREATE INDEX idx_games_status ON games_cache(status);
 CREATE INDEX idx_games_scheduled ON games_cache(scheduled_at);
+CREATE INDEX idx_games_cache_tournament_status ON games_cache(tournament_key, status);
 
 -- ===========================================
 -- ROW LEVEL SECURITY (RLS) POLICIES
@@ -142,6 +147,7 @@ CREATE POLICY "Users can view others picks after game starts"
     EXISTS (
       SELECT 1 FROM games_cache
       WHERE games_cache.game_id = picks.game_id
+        AND games_cache.tournament_key = picks.tournament_key
         AND games_cache.scheduled_at <= NOW()
     )
   );

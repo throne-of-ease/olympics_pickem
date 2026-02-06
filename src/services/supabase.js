@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { getActiveTournamentKey } from '../config/tournamentConfig';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -12,6 +13,8 @@ if (!supabaseUrl || !supabaseAnonKey) {
 export const supabase = supabaseUrl && supabaseAnonKey
   ? createClient(supabaseUrl, supabaseAnonKey)
   : null;
+
+const TOURNAMENT_KEY = getActiveTournamentKey();
 
 /**
  * Check if Supabase is configured and available
@@ -227,6 +230,7 @@ export const picks = {
       .from('picks')
       .select('*')
       .eq('user_id', userId)
+      .eq('tournament_key', TOURNAMENT_KEY)
       .order('created_at', { ascending: true });
 
     if (error) throw error;
@@ -242,7 +246,8 @@ export const picks = {
     const { data, error } = await supabase
       .from('picks')
       .select('*')
-      .eq('game_id', gameId);
+      .eq('game_id', gameId)
+      .eq('tournament_key', TOURNAMENT_KEY);
 
     if (error) throw error;
     return data;
@@ -263,9 +268,10 @@ export const picks = {
           team_a_score: teamAScore,
           team_b_score: teamBScore,
           confidence: confidence,
+          tournament_key: TOURNAMENT_KEY,
         },
         {
-          onConflict: 'user_id,game_id',
+          onConflict: 'tournament_key,user_id,game_id',
         }
       )
       .select()
@@ -285,7 +291,8 @@ export const picks = {
       .from('picks')
       .delete()
       .eq('user_id', userId)
-      .eq('game_id', gameId);
+      .eq('game_id', gameId)
+      .eq('tournament_key', TOURNAMENT_KEY);
 
     if (error) throw error;
   },
@@ -299,7 +306,8 @@ export const picks = {
 
     const { data, error } = await supabase
       .from('picks')
-      .select('*');
+      .select('*')
+      .eq('tournament_key', TOURNAMENT_KEY);
 
     if (error) throw error;
     return data;
@@ -414,6 +422,7 @@ export const gamesCache = {
       .from('games_cache')
       .select('*')
       .eq('game_id', gameId)
+      .eq('tournament_key', TOURNAMENT_KEY)
       .single();
 
     if (error && error.code !== 'PGRST116') throw error;
@@ -429,6 +438,7 @@ export const gamesCache = {
     const { data, error } = await supabase
       .from('games_cache')
       .select('*')
+      .eq('tournament_key', TOURNAMENT_KEY)
       .order('scheduled_at');
 
     if (error) throw error;
@@ -445,6 +455,7 @@ export const gamesCache = {
       .from('games_cache')
       .select('scheduled_at')
       .eq('game_id', gameId)
+      .eq('tournament_key', TOURNAMENT_KEY)
       .single();
 
     if (error) return false;
