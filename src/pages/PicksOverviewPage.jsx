@@ -6,6 +6,7 @@ import { useApp } from '../context/AppContext';
 import { Button, CountryFlag, Loading } from '../components/common';
 import { usePolling } from '../hooks/usePolling';
 import { getTeamFlagFromObject } from '../utils/countryFlags';
+import { getFinalLabel } from '../utils/gameStatus';
 import styles from './PicksOverviewPage.module.css';
 
 const DESIGN_OPTIONS = [
@@ -199,6 +200,7 @@ function CompactTableRow({ game, players }) {
   const now = new Date();
   const gameStarted = isAfter(now, scheduledAt) || isLive || isFinal;
   const liveStatus = isLive ? formatLiveStatus(game) : null;
+  const finalLabel = isFinal ? getFinalLabel(game) : null;
 
   const getPickForPlayer = (playerId) => {
     return game.picks?.find(p => p.playerId === playerId);
@@ -225,7 +227,7 @@ function CompactTableRow({ game, players }) {
           </div>
           <div className={styles.gameTime}>
             {isLive && <span className={styles.liveBadge}>LIVE</span>}
-            {isFinal && <span className={styles.finalBadge}>FINAL</span>}
+            {isFinal && <span className={styles.finalBadge}>{finalLabel || 'FINAL'}</span>}
             {!isFinal && !isLive && (
               <span>{format(scheduledAt, 'd/M HH:mm')}</span>
             )}
@@ -312,6 +314,7 @@ function TimelineGameRow({ game, players }) {
   const now = new Date();
   const gameStarted = isAfter(now, scheduledAt) || isLive || isFinal;
   const timeLabel = isLive ? formatLiveStatus(game) : format(scheduledAt, 'HH:mm');
+  const finalLabel = isFinal ? getFinalLabel(game) : null;
 
   const getPickForPlayer = (playerId) => {
     return game.picks?.find(p => p.playerId === playerId);
@@ -334,7 +337,7 @@ function TimelineGameRow({ game, players }) {
         </div>
         {(isFinal || isLive) && (
           <span className={`${styles.timelineStatus} ${isLive ? styles.live : ''}`}>
-            {isLive ? 'LIVE' : 'FINAL'}
+            {isLive ? 'LIVE' : (finalLabel || 'FINAL')}
           </span>
         )}
       </div>

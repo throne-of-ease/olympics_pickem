@@ -3,6 +3,7 @@ import { format, parseISO, isPast } from 'date-fns';
 import { Button, Card, CountryFlag } from '../common';
 import { calculateBrierPoints } from '../../services/scoring';
 import scoringConfig from '../../../config/scoring.json';
+import { getFinalLabel } from '../../utils/gameStatus';
 import styles from './PickForm.module.css';
 
 export function PickForm({ game, existingPick, onSubmit, onDelete, loading }) {
@@ -23,6 +24,7 @@ export function PickForm({ game, existingPick, onSubmit, onDelete, loading }) {
   const scheduledAt = parseISO(game.scheduled_at);
   const isFinal = game.status === 'final';
   const isLive = game.status === 'in_progress';
+  const finalLabel = isFinal ? getFinalLabel(game) : null;
   const hasStarted = isPast(scheduledAt) || isLive || isFinal;
   const isEditing = !!existingPick;
 
@@ -212,7 +214,7 @@ export function PickForm({ game, existingPick, onSubmit, onDelete, loading }) {
             <span className={styles.lockIcon}>🔒</span>
             <span className={styles.lockedLabel}>Locked</span>
             <span className={`${styles.lockedStatus} ${isLive ? styles.lockedLive : isFinal ? styles.lockedFinal : ''}`}>
-              {isLive ? 'LIVE' : isFinal ? 'FINAL' : 'STARTED'}
+              {isLive ? 'LIVE' : isFinal ? (finalLabel || 'FINAL') : 'STARTED'}
             </span>
           </div>
           <div className={styles.lockedMatchup}>

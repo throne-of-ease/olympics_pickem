@@ -1,5 +1,6 @@
 import { format, parseISO } from 'date-fns';
 import { Card, CountryFlag } from '../common';
+import { getFinalLabel } from '../../utils/gameStatus';
 import styles from './GameCard.module.css';
 
 const ROUND_LABELS = {
@@ -12,6 +13,7 @@ export function GameCard({ game }) {
   const scheduledAt = parseISO(game.scheduled_at);
   const isFinal = game.status === 'final';
   const isLive = game.status === 'in_progress';
+  const finalLabel = isFinal ? getFinalLabel(game) : null;
 
   return (
     <Card className={styles.card} padding="none">
@@ -23,7 +25,7 @@ export function GameCard({ game }) {
           {format(scheduledAt, 'EEE, MMM d')} at {format(scheduledAt, 'h:mm a')}
         </span>
         {isLive && <span className={styles.live}>LIVE</span>}
-        {isFinal && <span className={styles.final}>FINAL</span>}
+        {isFinal && <span className={styles.final}>{finalLabel || 'FINAL'}</span>}
       </div>
 
       <div className={styles.matchup}>

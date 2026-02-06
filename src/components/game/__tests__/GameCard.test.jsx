@@ -58,6 +58,45 @@ describe('GameCard', () => {
     expect(screen.getByText('FINAL')).toBeInTheDocument();
   });
 
+  it('shows FINAL/OT badge when game ends in overtime', () => {
+    const finalGame = {
+      ...baseGame,
+      status: 'final',
+      status_detail: 'Final/OT',
+      score_a: 3,
+      score_b: 2,
+      result: 'win_a',
+    };
+    render(<GameCard game={finalGame} />);
+    expect(screen.getByText('FINAL/OT')).toBeInTheDocument();
+  });
+
+  it('normalizes multi-OT to FINAL/OT', () => {
+    const finalGame = {
+      ...baseGame,
+      status: 'final',
+      status_detail: 'Final/2OT',
+      score_a: 3,
+      score_b: 2,
+      result: 'win_a',
+    };
+    render(<GameCard game={finalGame} />);
+    expect(screen.getByText('FINAL/OT')).toBeInTheDocument();
+  });
+
+  it('shows FINAL/SO badge when game ends in shootout', () => {
+    const finalGame = {
+      ...baseGame,
+      status: 'final',
+      status_detail: 'Final/SO',
+      score_a: 3,
+      score_b: 2,
+      result: 'win_a',
+    };
+    render(<GameCard game={finalGame} />);
+    expect(screen.getByText('FINAL/SO')).toBeInTheDocument();
+  });
+
   it('shows scores when game is final', () => {
     const finalGame = { ...baseGame, status: 'final', score_a: 3, score_b: 2, result: 'win_a' };
     render(<GameCard game={finalGame} />);
