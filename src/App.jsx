@@ -1,10 +1,9 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AppProvider } from './context/AppContext';
 import { AuthProvider } from './context/AuthContext';
 import { Layout } from './components/layout';
 import { ProtectedRoute } from './components/auth';
 import {
-  GamesPage,
   LeaderboardPage,
   PicksOverviewPage,
   RulesPage,
@@ -31,7 +30,7 @@ function App() {
             {/* Main app routes */}
             <Route path="/" element={<Layout />}>
               <Route index element={<PicksOverviewPage />} />
-              <Route path="games" element={<GamesPage />} />
+              <Route path="games" element={<Navigate to="/" replace />} />
               <Route path="leaderboard" element={<LeaderboardPage />} />
               <Route path="rules" element={<RulesPage />} />
 

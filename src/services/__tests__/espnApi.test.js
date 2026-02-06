@@ -88,6 +88,38 @@ describe('espnApi.js', () => {
       });
     });
 
+    it('preserves zero scores from the API', async () => {
+      const mockResponse = {
+        events: [
+          {
+            id: '401845700',
+            name: 'Canada vs USA',
+            date: '2026-02-11T12:00:00Z',
+            competitions: [
+              {
+                status: {
+                  type: { id: '2', name: 'In Progress' },
+                },
+                competitors: [
+                  { homeAway: 'home', score: '0', team: { id: '1', displayName: 'USA' } },
+                  { homeAway: 'away', score: '0', team: { id: '2', displayName: 'Canada' } },
+                ],
+              },
+            ],
+          },
+        ],
+      };
+
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve(mockResponse),
+      });
+
+      const games = await fetchSchedule();
+
+      expect(games[0].scores).toEqual({ teamA: 0, teamB: 0 });
+    });
+
     it('handles final games with scores', async () => {
       const mockResponse = {
         events: [

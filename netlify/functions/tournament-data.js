@@ -79,6 +79,9 @@ export async function handler(event) {
         short_name: game.shortName,
         scheduled_at: game.scheduledAt,
         status: game.status?.state || 'scheduled',
+        status_detail: game.status?.detail,
+        status_period: game.status?.period,
+        status_clock: game.status?.clock,
         round_type: game.roundType,
         venue: game.venue,
         score_a: game.scores?.teamA,
@@ -308,13 +311,22 @@ function parseScheduleResponse(data) {
       teamA: awayTeam ? parseTeam(awayTeam) : null,
       teamB: homeTeam ? parseTeam(homeTeam) : null,
       scores: {
-        teamA: awayTeam?.score ? parseInt(awayTeam.score, 10) : null,
-        teamB: homeTeam?.score ? parseInt(homeTeam.score, 10) : null,
+        teamA: parseScore(awayTeam?.score),
+        teamB: parseScore(homeTeam?.score),
       },
     });
   }
 
   return games;
+}
+
+function parseScore(value) {
+  if (value === null || value === undefined || value === '') return null;
+  const rawValue = typeof value === 'object'
+    ? (value.value ?? value.displayValue ?? value.text)
+    : value;
+  const parsed = parseInt(rawValue, 10);
+  return Number.isNaN(parsed) ? null : parsed;
 }
 
 function parseTeam(competitor) {
@@ -332,25 +344,64 @@ function parseTeam(competitor) {
 function parseGameStatus(status) {
   if (!status) return { state: 'unknown' };
 
-  const typeId = status.type?.id;
-  const stateName = status.type?.name?.toLowerCase();
+  const typeIdRaw = status.type?.id;
+  const typeId = typeIdRaw !== null && typeIdRaw !== undefined ? Number(typeIdRaw) : null;
+  const typeName = status.type?.name?.toLowerCase();
+  const typeState = status.type?.state?.toLowerCase();
+  const statusState = status.state?.toLowerCase();
+  const detail = status.type?.shortDetail
+    || status.type?.detail
+    || status.type?.description
+    || status.shortDetail
+    || status.detail;
 
-  if (typeId === '1' || stateName === 'scheduled') {
-    return { state: 'scheduled', detail: status.type?.shortDetail };
+  if (typeId === 1) {
+    return { state: 'scheduled', detail };
   }
-  if (typeId === '2' || stateName === 'in progress') {
+  if (typeId === 2) {
     return {
       state: 'in_progress',
       period: status.period,
-      clock: status.displayClock,
-      detail: status.type?.shortDetail
+      clock: status.displayClock || status.clock,
+      detail,
     };
   }
-  if (typeId === '3' || stateName === 'final') {
-    return { state: 'final', detail: status.type?.shortDetail };
+  if (typeId === 3) {
+    return { state: 'final', detail };
   }
 
-  return { state: stateName || 'unknown', detail: status.type?.shortDetail };
+  const normalizedState = typeState || statusState || typeName || '';
+  if (normalizedState === 'pre' || normalizedState === 'scheduled') {
+    return { state: 'scheduled', detail };
+  }
+  if (normalizedState === 'in' || normalizedState === 'live' || normalizedState === 'in_progress' || normalizedState === 'in progress') {
+    return {
+      state: 'in_progress',
+      period: status.period,
+      clock: status.displayClock || status.clock,
+      detail,
+    };
+  }
+  if (normalizedState === 'post' || normalizedState === 'final') {
+    return { state: 'final', detail };
+  }
+
+  if (normalizedState.includes('scheduled') || normalizedState.includes('pre')) {
+    return { state: 'scheduled', detail };
+  }
+  if (normalizedState.includes('in progress') || normalizedState.includes('in_progress') || normalizedState.includes('live')) {
+    return {
+      state: 'in_progress',
+      period: status.period,
+      clock: status.displayClock || status.clock,
+      detail,
+    };
+  }
+  if (normalizedState.includes('final') || normalizedState.includes('post')) {
+    return { state: 'final', detail };
+  }
+
+  return { state: normalizedState || 'unknown', detail };
 }
 
 function parseRoundType(seasonTypeName, eventName) {
