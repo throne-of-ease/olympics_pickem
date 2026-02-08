@@ -285,7 +285,7 @@ export function RulesPage() {
             )}
           </div>
           <p className={styles.chartNote}>
-            Values use the group-stage multiplier (1x). {labelSummary}.
+            Values use the group-stage regulation multiplier (1x). {labelSummary}.
           </p>
         </div>
 
@@ -301,16 +301,16 @@ export function RulesPage() {
       <Card className={styles.section}>
         <h2>Round Multipliers</h2>
         <p>
-          Points are multiplied based on the importance of the round:
+          Points are multiplied based on the importance of the round and whether it ended in overtime or a shootout:
         </p>
         <div className={styles.pointsTable}>
           <div className={styles.pointsRow}>
             <span className={styles.round}>Group Stage</span>
-            <span className={styles.points}>1x</span>
+            <span className={styles.points}>1x (0.75x OT/SO)</span>
           </div>
           <div className={styles.pointsRow}>
-            <span className={styles.round}>Knockout Round</span>
-            <span className={styles.points}>2x</span>
+            <span className={styles.round}>Playoffs</span>
+            <span className={styles.points}>2x (1.5x OT/SO)</span>
           </div>
         </div>
       </Card>

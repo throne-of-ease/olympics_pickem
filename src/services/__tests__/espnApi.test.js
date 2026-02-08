@@ -5,10 +5,12 @@ import {
   fetchTeams,
   fetchStandings,
 } from '../espnApi.js';
+import { getActiveTournamentKey, getTournamentConfig } from '../../config/tournamentConfig.js';
 
 describe('espnApi.js', () => {
   let consoleErrorSpy;
   let consoleWarnSpy;
+  const getBaseUrl = () => getTournamentConfig(getActiveTournamentKey()).espnBaseUrl;
 
   beforeEach(() => {
     vi.resetAllMocks();
@@ -74,9 +76,11 @@ describe('espnApi.js', () => {
 
       const games = await fetchSchedule('20260211-20260222');
 
-      expect(global.fetch).toHaveBeenCalledWith(
-        'https://site.api.espn.com/apis/site/v2/sports/hockey/olympics-mens-ice-hockey/scoreboard?dates=20260211-20260222'
+      expect(global.fetch).toHaveBeenNthCalledWith(
+        1,
+        `${getBaseUrl()}/scoreboard?dates=20260211-20260222`
       );
+      expect(global.fetch).toHaveBeenCalledWith('/data/game-overrides.json');
       expect(games).toHaveLength(1);
       expect(games[0]).toMatchObject({
         espnEventId: '401845663',
@@ -304,7 +308,7 @@ describe('espnApi.js', () => {
       const summary = await fetchGameSummary('401845663');
 
       expect(global.fetch).toHaveBeenCalledWith(
-        'https://site.api.espn.com/apis/site/v2/sports/hockey/olympics-mens-ice-hockey/summary?event=401845663'
+        `${getBaseUrl()}/summary?event=401845663`
       );
       expect(summary.espnEventId).toBe('401845663');
       expect(summary.teams).toHaveLength(2);
@@ -363,7 +367,7 @@ describe('espnApi.js', () => {
       const teams = await fetchTeams();
 
       expect(global.fetch).toHaveBeenCalledWith(
-        'https://site.api.espn.com/apis/site/v2/sports/hockey/olympics-mens-ice-hockey/teams'
+        `${getBaseUrl()}/teams`
       );
       expect(teams).toHaveLength(2);
       expect(teams[0]).toMatchObject({
@@ -429,7 +433,7 @@ describe('espnApi.js', () => {
       const standings = await fetchStandings();
 
       expect(global.fetch).toHaveBeenCalledWith(
-        'https://site.api.espn.com/apis/site/v2/sports/hockey/olympics-mens-ice-hockey/standings'
+        `${getBaseUrl()}/standings`
       );
       expect(standings).toHaveLength(1);
       expect(standings[0]).toMatchObject({

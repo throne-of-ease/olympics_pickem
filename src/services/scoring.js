@@ -1,4 +1,5 @@
 import scoringConfig from '../../config/scoring.json';
+import { isFinalOvertimeOrShootout } from '../utils/gameStatus.js';
 
 /**
  * Determine the result of a game based on scores
@@ -73,6 +74,43 @@ export function getPointsForRound(roundType) {
   return scoringConfig.points[roundType] || scoringConfig.points.groupStage;
 }
 
+function getBrierRoundBucket(roundType) {
+  return roundType === 'groupStage' ? 'groupStage' : 'playoff';
+}
+
+function getBrierBaseMultiplier(bucket, config = scoringConfig) {
+  const brierConfig = config.brier || {};
+  const baseMultipliers = brierConfig.baseMultipliers || {};
+
+  if (bucket === 'groupStage') {
+    return baseMultipliers.groupStage ?? brierConfig.groupStageBase ?? 1;
+  }
+
+  return baseMultipliers.playoff ?? brierConfig.playoffBase ?? 2;
+}
+
+function getBrierOvertimeMultiplier(bucket, config = scoringConfig) {
+  const brierConfig = config.brier || {};
+  const overtimeMultipliers = brierConfig.overtimeMultipliers || {};
+
+  if (bucket === 'groupStage') {
+    return overtimeMultipliers.groupStage ?? 0.75;
+  }
+
+  return overtimeMultipliers.playoff ?? 1.5;
+}
+
+function getBrierRoundMultiplier(game, roundType, config = scoringConfig) {
+  const bucket = getBrierRoundBucket(roundType);
+  const baseMultiplier = getBrierBaseMultiplier(bucket, config);
+
+  if (isFinalOvertimeOrShootout(game)) {
+    return getBrierOvertimeMultiplier(bucket, config);
+  }
+
+  return baseMultiplier;
+}
+
 /**
  * Calculate Brier-style points
  * Formula: Multiplier * (Base - (100 * (Outcome - Confidence)^2))
@@ -129,13 +167,18 @@ export function calculatePickScore(pick, game, config = scoringConfig) {
   const actualResult = getResult(actualScores.teamA, actualScores.teamB);
   const roundType = getRoundType(game);
   const roundMultiplier = config.points[roundType] || 1;
+  const brierRoundMultiplier = config.mode === 'brier'
+    ? getBrierRoundMultiplier(game, roundType, config)
+    : roundMultiplier;
+  const isBrierOvertimeAdjusted = config.mode === 'brier' && isFinalOvertimeOrShootout(game);
+  const brierBucket = config.mode === 'brier' ? getBrierRoundBucket(roundType) : null;
 
   // Compare results
   const predictedResult = pick.predictedResult || getResult(pick.teamAScore, pick.teamBScore);
   result.isCorrect = compareResults(predictedResult, actualResult);
 
   if (config.mode === 'brier') {
-    const points = calculateBrierPoints(result.isCorrect, result.confidence, roundMultiplier, config);
+    const points = calculateBrierPoints(result.isCorrect, result.confidence, brierRoundMultiplier, config);
     result.basePoints = points;
     result.totalPoints = points;
   } else if (result.isCorrect) {
@@ -162,6 +205,10 @@ export function calculatePickScore(pick, game, config = scoringConfig) {
     roundType,
     predictedResult,
     actualResult,
+    roundBucket: brierBucket,
+    roundMultiplierBase: config.mode === 'brier' ? getBrierBaseMultiplier(brierBucket, config) : roundMultiplier,
+    roundMultiplierApplied: config.mode === 'brier' ? brierRoundMultiplier : roundMultiplier,
+    overtimeShootoutAdjusted: isBrierOvertimeAdjusted,
     predictedScores: {
       teamA: pick.teamAScore ?? pick.predicted_team_a_score,
       teamB: pick.teamBScore ?? pick.predicted_team_b_score

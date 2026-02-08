@@ -5,7 +5,7 @@
  * Run with: npm run test -- scoring-integration
  */
 
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import { readFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -80,14 +80,22 @@ describe('Scoring Integration Tests', () => {
   let games;
   let players;
   let scoringConfig;
+  let consoleLogSpy;
 
   beforeAll(() => {
+    if (!process.env.DEBUG_SCORING) {
+      consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    }
     games = loadMockGames();
     players = loadPlayerPicks();
     scoringConfig = {
       points: { groupStage: 1, knockoutRound: 2, medalRound: 3 },
       exactScoreBonus: { enabled: false, points: 1 }
     };
+  });
+
+  afterAll(() => {
+    consoleLogSpy?.mockRestore();
   });
 
   describe('Data Loading', () => {

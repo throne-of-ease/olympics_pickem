@@ -11,7 +11,15 @@ describe('calculatePickScore with Brier mode', () => {
     },
     brier: {
       base: 25,
-      multiplier: 100
+      multiplier: 100,
+      baseMultipliers: {
+        groupStage: 1,
+        playoff: 2,
+      },
+      overtimeMultipliers: {
+        groupStage: 0.75,
+        playoff: 1.5,
+      }
     }
   };
 
@@ -47,6 +55,35 @@ describe('calculatePickScore with Brier mode', () => {
     const pick = { teamAScore: 2, teamBScore: 0, confidence: 1.0 };
     const result = calculatePickScore(pick, knockoutGame, brierConfig);
     expect(result.totalPoints).toBe(50); // 2 * 25
+  });
+
+  it('uses overtime multiplier for group stage OT/SO games', () => {
+    const otGame = { ...game, status: { state: 'final', detail: 'Final/OT' }, roundType: 'groupStage' };
+    const pick = { teamAScore: 2, teamBScore: 0, confidence: 1.0 };
+    const result = calculatePickScore(pick, otGame, brierConfig);
+    expect(result.totalPoints).toBe(18.75); // 0.75 * 25
+    expect(result.details.overtimeShootoutAdjusted).toBe(true);
+  });
+
+  it('uses playoff overtime multiplier for knockout games', () => {
+    const otGame = { ...game, status: { state: 'final', detail: 'Final/SO' }, roundType: 'knockoutRound' };
+    const pick = { teamAScore: 2, teamBScore: 0, confidence: 1.0 };
+    const result = calculatePickScore(pick, otGame, brierConfig);
+    expect(result.totalPoints).toBe(37.5); // 1.5 * 25
+  });
+
+  it('treats medal games as playoffs in regulation', () => {
+    const medalGame = { ...game, status: { state: 'final', detail: 'Final' }, roundType: 'medalRound' };
+    const pick = { teamAScore: 2, teamBScore: 0, confidence: 1.0 };
+    const result = calculatePickScore(pick, medalGame, brierConfig);
+    expect(result.totalPoints).toBe(50); // 2 * 25
+  });
+
+  it('uses playoff overtime multiplier for medal games', () => {
+    const medalOtGame = { ...game, status: { state: 'final', detail: 'Final/2OT' }, roundType: 'medalRound' };
+    const pick = { teamAScore: 2, teamBScore: 0, confidence: 1.0 };
+    const result = calculatePickScore(pick, medalOtGame, brierConfig);
+    expect(result.totalPoints).toBe(37.5); // 1.5 * 25
   });
 
   it('defaults confidence to 0.5 if missing in Brier mode', () => {

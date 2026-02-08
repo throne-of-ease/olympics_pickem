@@ -9,6 +9,7 @@
 import { jsonResponse, errorResponse, corsHeaders } from './utils/response.js';
 import { loadAllPlayerPicksFromSupabase, loadScoringConfig, loadGameOverrides } from './utils/pickLoader.js';
 import { getTournamentConfig, getActiveTournamentKey } from './utils/tournamentConfig.js';
+import { calculatePickScore } from '../../src/services/scoring.js';
 
 // Load scoring config once at module level
 const scoringConfig = loadScoringConfig();
@@ -68,8 +69,6 @@ export async function handler(event) {
       const gameStarted = new Date(game.scheduledAt) <= now || isFinal || isInProgress;
       const gamePicks = picksByGame[game.espnEventId] || [];
       const actualResult = getResult(game.scores?.teamA, game.scores?.teamB);
-      const roundType = game.roundType || 'groupStage';
-      const basePoints = scoringConfig.points[roundType] || 1;
 
       return {
         id: game.espnEventId,
@@ -91,8 +90,15 @@ export async function handler(event) {
         team_b: game.teamB,
         picks: gameStarted
           ? gamePicks.map(p => {
-              const isCorrect = isFinal && actualResult && p.predictedResult === actualResult;
-              const pointsEarned = isCorrect ? basePoints : 0;
+              const pickScoreResult = isFinal
+                ? calculatePickScore(
+                    { ...p, gameId: game.espnEventId },
+                    { ...game, id: game.espnEventId },
+                    scoringConfig
+                  )
+                : null;
+              const isCorrect = Boolean(pickScoreResult?.isCorrect);
+              const pointsEarned = pickScoreResult ? pickScoreResult.totalPoints : 0;
               return {
                 playerId: p.playerId,
                 playerName: p.playerName,
@@ -131,35 +137,28 @@ export async function handler(event) {
 
         scoredGames++;
         const roundType = game.roundType || 'groupStage';
-        const basePoints = scoringConfig.points[roundType] || 1;
-
-        // Determine actual result
-        const actualResult = getResult(game.scores?.teamA, game.scores?.teamB);
-        const isCorrect = pick.predictedResult === actualResult;
+        const pickScoreResult = calculatePickScore(
+          { ...pick, gameId: game.espnEventId },
+          { ...game, id: game.espnEventId },
+          scoringConfig
+        );
+        const isCorrect = pickScoreResult.isCorrect;
 
         if (roundBreakdown[roundType]) {
           roundBreakdown[roundType].total++;
         }
 
+        totalPoints += pickScoreResult.totalPoints;
         if (isCorrect) {
           correctPicks++;
-          totalPoints += basePoints;
 
           if (roundBreakdown[roundType]) {
             roundBreakdown[roundType].correct++;
-            roundBreakdown[roundType].points += basePoints;
           }
+        }
 
-          // Check exact score bonus
-          if (scoringConfig.exactScoreBonus?.enabled) {
-            if (pick.teamAScore === game.scores?.teamA &&
-                pick.teamBScore === game.scores?.teamB) {
-              totalPoints += scoringConfig.exactScoreBonus.points;
-              if (roundBreakdown[roundType]) {
-                roundBreakdown[roundType].points += scoringConfig.exactScoreBonus.points;
-              }
-            }
-          }
+        if (roundBreakdown[roundType]) {
+          roundBreakdown[roundType].points += pickScoreResult.totalPoints;
         }
       }
 

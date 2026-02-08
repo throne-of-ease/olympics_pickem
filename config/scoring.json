@@ -7,7 +7,15 @@
   },
   "brier": {
     "base": 25,
-    "multiplier": 100
+    "multiplier": 100,
+    "baseMultipliers": {
+      "groupStage": 1,
+      "playoff": 2
+    },
+    "overtimeMultipliers": {
+      "groupStage": 0.75,
+      "playoff": 1.5
+    }
   },
   "exactScoreBonus": {
     "enabled": false,
