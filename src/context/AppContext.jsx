@@ -1,8 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
-import { fetchSchedule } from '../services/espnApi';
 import { getActiveTournamentKey } from '../config/tournamentConfig';
-import { picks as picksService, profiles as profilesService } from '../services/supabase';
-import { calculateLeaderboard, enrichGamesWithPicks } from '../services/leaderboardCalculator';
 
 const AppContext = createContext(null);
 
@@ -121,52 +118,22 @@ export function AppProvider({ children }) {
     setError({ games: null, leaderboard: null });
 
     try {
-      // Fetch all data in parallel
-      const [espnGames, visiblePicks, allProfiles] = await Promise.all([
-        fetchSchedule(),
-        picksService.getAllVisible(),
-        profilesService.getAll(),
-      ]);
+      const response = await fetch('/.netlify/functions/tournament-data');
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+      }
+      const data = await response.json();
 
-      console.log('Client-side fetch complete:', {
-        games: espnGames.length,
-        picks: visiblePicks.length,
-        profiles: allProfiles.length,
+      console.log('Fetched tournament data from API:', {
+        games: data.games?.length,
+        leaderboard: data.leaderboard?.length,
       });
 
-      // Calculate leaderboard client-side
-      const calculatedLeaderboard = calculateLeaderboard(
-        espnGames,
-        visiblePicks,
-        allProfiles,
-        { includeLiveGames }
-      );
-
-      // Enrich games with pick information
-      const enrichedGames = enrichGamesWithPicks(
-        espnGames,
-        visiblePicks,
-        allProfiles,
-        { includeLiveGames }
-      );
-
-      // Calculate tournament progress
-      const totalGames = espnGames.length;
-      const completedGames = espnGames.filter(g => g.status?.state === 'final').length;
-      const inProgressGames = espnGames.filter(g => g.status?.state === 'in_progress').length;
-
-      const progressData = {
-        totalGames,
-        completedGames,
-        inProgressGames,
-        percentComplete: totalGames > 0 ? ((completedGames / totalGames) * 100).toFixed(1) : '0.0',
-      };
-
       // Update state
-      setGames(enrichedGames);
-      setLeaderboard(calculatedLeaderboard);
-      setTournamentProgress(progressData);
-      setPlayers(calculatedLeaderboard.map(p => ({
+      setGames(data.games || []);
+      setLeaderboard(data.leaderboard || []);
+      setTournamentProgress(data.tournamentProgress);
+      setPlayers((data.leaderboard || []).map(p => ({
         id: p.playerId,
         name: p.playerName,
       })));
@@ -174,9 +141,9 @@ export function AppProvider({ children }) {
 
       // Cache the response
       setCachedData({
-        games: enrichedGames,
-        leaderboard: calculatedLeaderboard,
-        tournamentProgress: progressData,
+        games: data.games || [],
+        leaderboard: data.leaderboard || [],
+        tournamentProgress: data.tournamentProgress,
         timestamp: new Date().toISOString(),
       });
     } catch (err) {
@@ -197,7 +164,7 @@ export function AppProvider({ children }) {
     } finally {
       setLoading({ games: false, leaderboard: false });
     }
-  }, [includeLiveGames]);
+  }, []);
 
   /**
    * Legacy fetchGames for backwards compatibility

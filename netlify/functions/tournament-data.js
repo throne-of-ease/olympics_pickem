@@ -7,7 +7,7 @@
  */
 
 import { jsonResponse, errorResponse, corsHeaders } from './utils/response.js';
-import { loadAllPlayerPicksFromSupabase, loadScoringConfig, loadGameOverrides } from './utils/pickLoader.js';
+import { loadAllPlayerPicksFromSupabase, loadScoringConfig, loadGameOverrides, loadPickOverrides } from './utils/pickLoader.js';
 import { getTournamentConfig, getActiveTournamentKey } from './utils/tournamentConfig.js';
 import { calculatePickScore } from '../../src/services/scoring.js';
 
@@ -37,6 +37,9 @@ export async function handler(event) {
 
     // Load all player picks from Supabase (falls back to static files if unavailable)
     const playersWithPicks = await loadAllPlayerPicksFromSupabase(tournamentKey);
+
+    // Apply any pick overrides for testing
+    applyPickOverrides(playersWithPicks);
 
     console.log('DEBUG tournament-data: Players loaded:', playersWithPicks.length);
     console.log('DEBUG tournament-data: Total picks across players:', playersWithPicks.reduce((sum, p) => sum + (p.picks?.length || 0), 0));
@@ -105,6 +108,7 @@ export async function handler(event) {
                 predictedScoreA: p.teamAScore,
                 predictedScoreB: p.teamBScore,
                 predictedResult: p.predictedResult,
+                confidence: p.confidence,
                 isCorrect,
                 pointsEarned,
               };
@@ -233,6 +237,55 @@ function getResult(scoreA, scoreB) {
   if (scoreA > scoreB) return 'win_a';
   if (scoreB > scoreA) return 'win_b';
   return 'tie';
+}
+
+// Apply pick overrides if enabled (for testing)
+function applyPickOverrides(playersWithPicks) {
+  const config = loadPickOverrides();
+  if (!config.enabled || !config.overrides || config.overrides.length === 0) {
+    return;
+  }
+
+  console.log('Applying pick overrides for testing');
+
+  for (const override of config.overrides) {
+    const playerName = override.player?.toLowerCase();
+    if (!playerName || !override.gameId) continue;
+
+    const player = playersWithPicks.find(p => p.name?.toLowerCase() === playerName);
+    if (!player) {
+      console.warn(`Pick override: player "${override.player}" not found`);
+      continue;
+    }
+
+    const teamAScore = override.teamAScore ?? 0;
+    const teamBScore = override.teamBScore ?? 0;
+    const predictedResult = getResult(teamAScore, teamBScore);
+    const gameId = override.gameId.toString();
+
+    const existingIdx = player.picks.findIndex(p => p.gameId === gameId);
+    if (existingIdx !== -1) {
+      const existing = player.picks[existingIdx];
+      player.picks[existingIdx] = {
+        ...existing,
+        teamAScore,
+        teamBScore,
+        confidence: override.confidence ?? existing.confidence,
+        predictedResult,
+      };
+      console.log(`Pick override: replaced ${player.name}'s pick for game ${gameId}`);
+    } else {
+      player.picks.push({
+        playerId: player.id,
+        gameId,
+        teamAScore,
+        teamBScore,
+        confidence: override.confidence ?? 0.5,
+        predictedResult,
+      });
+      console.log(`Pick override: added new pick for ${player.name} on game ${gameId}`);
+    }
+  }
 }
 
 // Apply game overrides if enabled (for testing)

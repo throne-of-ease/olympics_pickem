@@ -1,0 +1,12 @@
+{
+  "enabled": true,
+  "overrides": [
+    {
+      "player": "Jirka P",
+      "gameId": "401845664",
+      "teamAScore": 0,
+      "teamBScore": 1,
+      "confidence": 1
+    }
+  ]
+}
