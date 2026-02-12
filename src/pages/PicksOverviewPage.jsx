@@ -116,7 +116,7 @@ export function PicksOverviewPage() {
               checked={includeLiveGames}
               onChange={(e) => toggleIncludeLiveGames(e.target.checked)}
             />
-            <span>Include live games</span>
+            <span>Include live</span>
           </label>
           <Button
             variant="ghost"

@@ -212,6 +212,9 @@ export async function handler(event) {
       leaderboard,
       tournamentProgress,
       timestamp: now.toISOString(),
+      // Raw data for client-side scoring (live game toggle)
+      players: playersWithPicks,
+      rawGames: games,
     };
 
     // Add cache headers for better performance

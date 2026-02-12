@@ -1,5 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { getActiveTournamentKey } from '../config/tournamentConfig';
+import { calculateLeaderboard, calculatePickScore } from '../services/scoring.js';
+import scoringConfig from '../../config/scoring.json';
 
 const AppContext = createContext(null);
 
@@ -78,6 +80,59 @@ function saveSettings(settings) {
   }
 }
 
+/**
+ * Compute leaderboard and per-game pick scores client-side.
+ * When includeLiveGames=false, uses server's pre-calculated leaderboard.
+ * When includeLiveGames=true, recalculates to include in-progress games.
+ */
+function computeClientData(serverLeaderboard, enrichedGames, rawGames, players, includeLiveGames) {
+  if (!includeLiveGames) {
+    return { computedLeaderboard: serverLeaderboard, computedGames: enrichedGames };
+  }
+
+  // Client-side leaderboard with live games included
+  const computedLeaderboard = calculateLeaderboard(players, rawGames, scoringConfig);
+
+  // Also score picks for in-progress games in the enriched games list
+  const rawGameMap = new Map(rawGames.map(g => [g.espnEventId, g]));
+  const computedGames = enrichedGames.map(game => {
+    if (game.status !== 'in_progress' || !game.picks || !game.picksVisible) {
+      return game;
+    }
+
+    const rawGame = rawGameMap.get(game.id || game.espn_event_id);
+    if (!rawGame) return game;
+
+    const updatedPicks = game.picks.map(pick => {
+      // Skip picks that already have scoring (shouldn't happen for in-progress, but guard)
+      if (pick.pointsEarned && pick.pointsEarned !== 0) return pick;
+
+      const pickScoreResult = calculatePickScore(
+        {
+          gameId: rawGame.espnEventId,
+          teamAScore: pick.predictedScoreA,
+          teamBScore: pick.predictedScoreB,
+          predictedResult: pick.predictedResult,
+          confidence: pick.confidence,
+        },
+        { ...rawGame, id: rawGame.espnEventId },
+        scoringConfig
+      );
+
+      return {
+        ...pick,
+        isCorrect: pickScoreResult.isCorrect,
+        pointsEarned: pickScoreResult.totalPoints,
+        isProvisional: true,
+      };
+    });
+
+    return { ...game, picks: updatedPicks };
+  });
+
+  return { computedLeaderboard, computedGames };
+}
+
 export function AppProvider({ children }) {
   const [games, setGames] = useState([]);
   const [leaderboard, setLeaderboard] = useState([]);
@@ -102,13 +157,27 @@ export function AppProvider({ children }) {
     if (!skipCache) {
       const cached = getCachedData();
       if (cached) {
-        setGames(cached.games || []);
-        setLeaderboard(cached.leaderboard || []);
+        // Restore refs from cache
+        rawGamesRef.current = cached.rawGames || [];
+        playersRef.current = cached.players || [];
+        serverLeaderboardRef.current = cached.leaderboard || [];
+        enrichedGamesRef.current = cached.games || [];
+
+        const { computedLeaderboard, computedGames } = computeClientData(
+          cached.leaderboard || [],
+          cached.games || [],
+          cached.rawGames || [],
+          cached.players || [],
+          includeLiveGames
+        );
+
+        setGames(computedGames);
+        setLeaderboard(computedLeaderboard);
         setTournamentProgress(cached.tournamentProgress);
-        setPlayers(cached.leaderboard?.map(p => ({
+        setPlayers(computedLeaderboard.map(p => ({
           id: p.playerId,
           name: p.playerName,
-        })) || []);
+        })));
         setLastUpdated(new Date(cached.timestamp));
         return;
       }
@@ -129,20 +198,37 @@ export function AppProvider({ children }) {
         leaderboard: data.leaderboard?.length,
       });
 
+      // Store raw data in refs for client-side recalculation
+      rawGamesRef.current = data.rawGames || [];
+      playersRef.current = data.players || [];
+      serverLeaderboardRef.current = data.leaderboard || [];
+      enrichedGamesRef.current = data.games || [];
+
+      // Compute leaderboard and pick scores based on includeLiveGames
+      const { computedLeaderboard, computedGames } = computeClientData(
+        data.leaderboard || [],
+        data.games || [],
+        data.rawGames || [],
+        data.players || [],
+        includeLiveGames
+      );
+
       // Update state
-      setGames(data.games || []);
-      setLeaderboard(data.leaderboard || []);
+      setGames(computedGames);
+      setLeaderboard(computedLeaderboard);
       setTournamentProgress(data.tournamentProgress);
-      setPlayers((data.leaderboard || []).map(p => ({
+      setPlayers((computedLeaderboard).map(p => ({
         id: p.playerId,
         name: p.playerName,
       })));
       setLastUpdated(new Date());
 
-      // Cache the response
+      // Cache the response (cache raw server data, recompute on load)
       setCachedData({
         games: data.games || [],
         leaderboard: data.leaderboard || [],
+        rawGames: data.rawGames || [],
+        players: data.players || [],
         tournamentProgress: data.tournamentProgress,
         timestamp: new Date().toISOString(),
       });
@@ -164,7 +250,7 @@ export function AppProvider({ children }) {
     } finally {
       setLoading({ games: false, leaderboard: false });
     }
-  }, []);
+  }, [includeLiveGames]);
 
   /**
    * Legacy fetchGames for backwards compatibility
@@ -206,21 +292,39 @@ export function AppProvider({ children }) {
     const newValue = value ?? !includeLiveGames;
     setIncludeLiveGames(newValue);
     saveSettings({ ...getSettings(), includeLiveGames: newValue });
-    // Recalculation happens automatically via useEffect when includeLiveGames changes
+
+    // Recalculate from cached refs immediately (no API call needed)
+    if (rawGamesRef.current.length > 0) {
+      const { computedLeaderboard, computedGames } = computeClientData(
+        serverLeaderboardRef.current,
+        enrichedGamesRef.current,
+        rawGamesRef.current,
+        playersRef.current,
+        newValue
+      );
+      setLeaderboard(computedLeaderboard);
+      setGames(computedGames);
+      setPlayers(computedLeaderboard.map(p => ({
+        id: p.playerId,
+        name: p.playerName,
+      })));
+      // Clear cache so next fetch recalculates with new setting
+      clearCache();
+    }
   }, [includeLiveGames]);
 
-  // Track if this is the initial mount
-  const isInitialMount = useRef(true);
+  // Store raw server data for client-side recalculation (avoids refetch on toggle)
+  const rawGamesRef = useRef([]);
+  const playersRef = useRef([]);
+  const serverLeaderboardRef = useRef([]);
+  const enrichedGamesRef = useRef([]);
 
-  // Initial fetch and recalculate when includeLiveGames changes
+  // Initial fetch on mount only
+  const hasFetched = useRef(false);
   useEffect(() => {
-    if (isInitialMount.current) {
-      // First mount - allow cache usage
-      isInitialMount.current = false;
+    if (!hasFetched.current) {
+      hasFetched.current = true;
       fetchTournamentData(false);
-    } else {
-      // Subsequent updates (includeLiveGames changed) - skip cache to recalculate
-      fetchTournamentData(true);
     }
   }, [fetchTournamentData]);
 

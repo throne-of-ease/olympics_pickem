@@ -33,4 +33,5 @@ GEMINI.md
 OUT.md
 deno.lock
 plans/shimmering-swinging-seahorse.md
+netlify/functions/utils/email.js
 

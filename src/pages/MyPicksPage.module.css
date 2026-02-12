@@ -100,8 +100,8 @@
 
 .refreshButton:disabled {
   opacity: 1;
-  background: var(--color-gray-200);
-  color: var(--color-gray-800);
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
 }
 
 @media (max-width: 480px) {
