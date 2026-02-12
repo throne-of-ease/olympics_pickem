@@ -187,7 +187,10 @@ export function AppProvider({ children }) {
     setError({ games: null, leaderboard: null });
 
     try {
-      const response = await fetch('/.netlify/functions/tournament-data');
+      const url = skipCache
+        ? `/.netlify/functions/tournament-data?_t=${Date.now()}`
+        : '/.netlify/functions/tournament-data';
+      const response = await fetch(url, skipCache ? { cache: 'no-store' } : undefined);
       if (!response.ok) {
         throw new Error(`API error: ${response.status}`);
       }
