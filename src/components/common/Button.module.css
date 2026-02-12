@@ -77,7 +77,7 @@
 }
 
 .ghost:hover:not(:disabled) {
-  background-color: var(--color-gray-100);
+  background-color: var(--bg-secondary);
 }
 
 /* Loading */
