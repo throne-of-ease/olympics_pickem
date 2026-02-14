@@ -21,6 +21,20 @@
       "teamAScore": 1,
       "teamBScore": 0,
       "confidence": 1
+    },
+    {
+      "player": "Istvanutca",
+      "gameId": "401845674",
+      "teamAScore": 1,
+      "teamBScore": 0,
+      "confidence": 1
+    },
+    {
+      "player": "Istvanutca",
+      "gameId": "401845673",
+      "teamAScore": 1,
+      "teamBScore": 0,
+      "confidence": 0.85
     }
   ]
 }
