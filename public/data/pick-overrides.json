@@ -32,8 +32,8 @@
     {
       "player": "Istvanutca",
       "gameId": "401845673",
-      "teamAScore": 1,
-      "teamBScore": 0,
+      "teamAScore": 0,
+      "teamBScore": 1,
       "confidence": 0.85
     }
   ]
