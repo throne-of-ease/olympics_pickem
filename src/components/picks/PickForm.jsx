@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { format, parseISO, isPast } from 'date-fns';
 import { Button, Card, CountryFlag } from '../common';
-import { calculateBrierPoints } from '../../services/scoring';
+import { calculateBrierPoints, getBrierRoundBucket, getBrierBaseMultiplier } from '../../services/scoring';
 import scoringConfig from '../../../config/scoring.json';
 import { getFinalLabel } from '../../utils/gameStatus';
 import styles from './PickForm.module.css';
@@ -41,7 +41,8 @@ export function PickForm({ game, existingPick, onSubmit, onDelete, loading }) {
 
   // Calculate points preview for both teams based on confidence
   const pointsPreview = useMemo(() => {
-    const roundMultiplier = scoringConfig.points[game.roundType || game.round_type || 'groupStage'] || 1;
+    const roundType = game.roundType || game.round_type || 'groupStage';
+    const roundMultiplier = getBrierBaseMultiplier(getBrierRoundBucket(roundType), scoringConfig);
     const winPoints = calculateBrierPoints(true, confidence, roundMultiplier, scoringConfig);
     const losePoints = calculateBrierPoints(false, confidence, roundMultiplier, scoringConfig);
     return { winPoints, losePoints };

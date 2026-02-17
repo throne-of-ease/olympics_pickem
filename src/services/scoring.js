@@ -74,11 +74,11 @@ export function getPointsForRound(roundType) {
   return scoringConfig.points[roundType] || scoringConfig.points.groupStage;
 }
 
-function getBrierRoundBucket(roundType) {
+export function getBrierRoundBucket(roundType) {
   return roundType === 'groupStage' ? 'groupStage' : 'playoff';
 }
 
-function getBrierBaseMultiplier(bucket, config = scoringConfig) {
+export function getBrierBaseMultiplier(bucket, config = scoringConfig) {
   const brierConfig = config.brier || {};
   const baseMultipliers = brierConfig.baseMultipliers || {};
 

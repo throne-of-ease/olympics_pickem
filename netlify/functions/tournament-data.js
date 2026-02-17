@@ -361,7 +361,7 @@ function parseScheduleResponse(data) {
       shortName: event.shortName,
       scheduledAt: event.date,
       status: parseGameStatus(competition.status),
-      roundType: parseRoundType(event.season?.type?.name, event.name),
+      roundType: parseRoundType(event.season?.type?.name, event.name, event.date),
       venue: competition.venue?.fullName,
       teamA: awayTeam ? parseTeam(awayTeam) : null,
       teamB: homeTeam ? parseTeam(homeTeam) : null,
@@ -459,7 +459,7 @@ function parseGameStatus(status) {
   return { state: normalizedState || 'unknown', detail };
 }
 
-function parseRoundType(seasonTypeName, eventName) {
+function parseRoundType(seasonTypeName, eventName, scheduledDate) {
   const name = (seasonTypeName || eventName || '').toLowerCase();
 
   if (name.includes('gold') || name.includes('bronze')) {
@@ -470,6 +470,15 @@ function parseRoundType(seasonTypeName, eventName) {
   }
   if (name.includes('group')) {
     return 'groupStage';
+  }
+
+  // Date-based fallback: games after Feb 15, 2026 are knockout rounds
+  if (scheduledDate) {
+    const gameDate = new Date(scheduledDate);
+    const knockoutStart = new Date('2026-02-16T00:00:00Z');
+    if (gameDate >= knockoutStart) {
+      return 'knockoutRound';
+    }
   }
 
   return 'groupStage';

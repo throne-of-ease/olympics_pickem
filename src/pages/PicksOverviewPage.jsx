@@ -71,6 +71,11 @@ export function PicksOverviewPage() {
   // Sort games by date (most recent/upcoming first for better UX)
   const sortedGames = useMemo(() => {
     return [...games].sort((a, b) => {
+      const roundA = a.round_type || 'groupStage';
+      const roundB = b.round_type || 'groupStage';
+      const isPlayoffA = roundA !== 'groupStage' ? 0 : 1;
+      const isPlayoffB = roundB !== 'groupStage' ? 0 : 1;
+      if (isPlayoffA !== isPlayoffB) return isPlayoffA - isPlayoffB;
       const dateA = parseISO(a.scheduled_at);
       const dateB = parseISO(b.scheduled_at);
       return dateA - dateB;
