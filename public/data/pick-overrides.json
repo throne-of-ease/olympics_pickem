@@ -42,6 +42,13 @@
       "teamAScore": 0,
       "teamBScore": 1,
       "confidence": 1
+    },
+    {
+      "player": "Jirka P",
+      "gameId": "401845787",
+      "teamAScore": 1,
+      "teamBScore": 0,
+      "confidence": 0.55
     }
   ]
 }
